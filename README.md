@@ -1,4 +1,4 @@
-# Shared EV chargers
+# Sdílené nabíječky elektromobilů
 ## Volba tématu
 Chtěl bych vytvořit systém, který by dovolil lidem sdílet své domovní nabíječky elektromobilů ostatním podobně jako Airbnb sdílí obydlí.
 ## Analýza problému
