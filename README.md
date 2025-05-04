@@ -1,47 +1,93 @@
 # Sdílené nabíječky elektromobilů
+
 ## Volba tématu
 Chtěl bych vytvořit systém, který by dovolil lidem sdílet své domovní nabíječky elektromobilů ostatním podobně jako Airbnb sdílí obydlí.
+
 ## Analýza problému
+
 ### Nápad
-Když jsem hledal, jestli něco takového existuje tak v česku bylo provděpodobně pár pokusů, ale stránku už nefungují. V zahraničí už nějaké projekty existují, například https://www.goplugable.com/ nebo https://www.pluginn.app/en/. Go Plugable ale nabízí kompletní stanice. Tomu bych se chtěl vyhnout a chtěl bych využívat nabíjecí stanice, které už uživatel doma vlastní.
+Když jsem hledal, jestli něco takového existuje, zjistil jsem, že v Česku pravděpodobně pár pokusů bylo, ale stránky již nefungují. V zahraničí už nějaké projekty existují, například:
+- [Go Plugable](https://www.goplugable.com/)
+- [Plug Inn](https://www.pluginn.app/en/)
+
+Go Plugable ale nabízí kompletní stanice. Tomu bych se chtěl vyhnout a chtěl bych využívat nabíjecí stanice, které už uživatel doma vlastní. Uživatelé si tedy nebudou muset kupovat nabíjecí stanici za desítky tisíc korun ale pouze krabičku (mezičlen) za pár stovek a zároveň se neošidí o prémiové funkce ekosysétmu jejich značky.
+
 ## Výběr postupu a technologií
-Toto jsou postupy a technologie, které bych chtěl v projektu využít.
+
 ### Autentizace
-K tomu bych chtěl využít esp32 nebo Rasberr Pi Pico, které by dělalo prostředníka mezi API nabíjecí stanice nebo v případě nepodporované nabíjecí stanice takové API nahrazovalo. Využívali by se RFID karty, které už vlastník elektroauta většinou má. Po autentizaci uživatele, může začít nabíjení.
+K autentizaci chci využít **ESP32** nebo **Raspberry Pi Pico**, které budou sloužit jako prostředník mezi serverem a nabíjecí stanicí. Pokud nabíječka nemá vlastní API, mezičlen bude tuto komunikaci simulovat. Autentizace proběhne pomocí **RFID čtečky**, protože většina uživatelů elektromobilu už vlastní RFID kartu.
+
+### Síťová komunikace
+Zařízení ESP32 bude komunikovat se serverem přes **HTTPS**. V případě potřeby real-time dat (např. průběžné informace o stavu nabíjení) zvážím použití **WebSocketů**.
+
 ### Platby
-Po ukončení nabíjení se částka automaticky strhne z bankovního účtu uživatele, nebo z nabitého kreditu na uživatelském účtu. Ceník elektřiny si stanoví provozovatel nabíjecí stanice.
+Po ukončení nabíjení se částka automaticky strhne z bankovního účtu uživatele, nebo z jeho přednabitého kreditu. Ceník elektřiny si stanoví vlastník nabíječky. Pravděpodobně využiji knihovnu **gopay-sdk**, ale ještě ověřím její použitelnost.
+
+### Backend a API
+Vytvořím vlastní API pomocí **FastAPI** – kvůli přehledné dokumentaci a jednoduchému testování. Je také napsané v Pythonu, ve kterém se chci zlepšovat.
+
+### Databáze
+Pro ukládání uživatelských účtů, historie nabíjení a informací o nabíječkách použiji **PostgreSQL** – robustní relační databázi dobře podporovanou v Djangu.
+
+### Webová aplikace
+Pro uživatelské rozhraní využiji **Django**, které mě zaujalo svým propojením mezi backendem a frontendem.
+
+### Frontend framework
+Pro tvorbu responzivního rozhraní mohu zvažovat buď čisté Django šablony, nebo moderní knihovny jako **React** podle rozsahu a požadavků frontendu.
+
+### Geolokace a mapa nabíječek
+Zobrazování nabíječek na mapě bude řešeno pomocí **Leaflet.js**, **Mapbox** nebo Google Maps API. Každá nabíječka bude mít přiřazené GPS souřadnice.
+
+### Bezpečnost
+- API bude chráněno **tokenovou autentizací** (např. JWT).
+- Komunikace poběží přes **HTTPS**.
+- Uživatelé budou mít různé **role** (např. majitel, uživatel).
+- Servery budou nastaveny s ohledem na bezpečnostní zásady (CORS, CSRF, atd.).
+
 ## Stanovení cílů
-1. Komunikace mezičlenu s API Solax nabíječky - mezičlen podle získaných informací z rfid čtečky zahájí nabíjení a bude komunikovat se serverem aplikace a odesílat data o odebraných kW.
-2. Pro nabíječky bez RFID čtečky vytvořit druhou verzi mezičlenu, který bude tuto komunikaci zprostředkovávat místo nabíječky a pošle nabíječce po autentizaci informaci, aby započala nabíjení.
-3. Vytvořit responzivní webové stránky s mapou nabíječek a se správou uživatelských účtu, vlastněných nabíjecích stanic a s výpisem historie nabíjení.
-4. Automatické strhávání z bankovního účtu nebo z nahraného kreditu.
-5. Zobrazování statistiky o zdroji elektřiny, kterou si uživatel nabil auto (poměr mezi elektřinou ze sítě oproti domácí fotovoltaice)
-### Volitelné cíle:
-1. Rezervační systém nabíječek
-2. Přidání podpory i pro jiné nabíječky než Solax
-3. Možnost autentizace mobilem s NFC (nutnost tvorby Android nebo IOS aplikace) Zvážit jestli neudělat plnohodnotnou aplikaci, kdybych už měl nějakou dělat.
+
+1. Komunikace mezičlenu s API Solax nabíječky – mezičlen po přečtení RFID karty zahájí nabíjení a bude posílat informace o odebraných kWh na server.
+3. Vytvořit responzivní web s mapou nabíječek, správou účtů, stanic a historií nabíjení.
+4. Automatizované strhávání plateb z účtu nebo z kreditu.
+5. Zobrazování statistik o zdroji elektřiny (síť vs. domácí fotovoltaika).
+
+### Volitelné cíle
+
+1. Rezervační systém nabíječek.
+2. Pro nabíječky bez RFID čtečky vytvořit druhou verzi mezičlenu, který po autentizaci zprostředkuje započetí nabíjení.
+2. Přidání podpory i pro jiné nabíječky s API než Solax.
+3. Autentizace mobilem přes NFC – zvážit vytvoření mobilní aplikace (Android/iOS).
+
 ## Časový rozvrh
+Po celou dobu projektu si budu psát pracovní verzi dokumentace, kterou potom přetvořím do publikování-schopné verze.
+
 ### Červenec
-- Seznámení s API od Solax nabíjecí stanice
-- Schopnost vyčíst informace z RFID čtečky na nabíjecí stanici
-- Schopnost zapnout a vypnout nabíjení přes API dotazy
+- Seznámení s API nabíjecích stanic Solax.
+- Zprovoznění RFID čtečky.
+- Schopnost ovládat nabíjení přes API.
+
 ### Srpen
-- Programování mezičlenu
-- Naprogramování vlastního serveru s databází a API, který bude ukládat informace o uživatelských účtech a mezičlen na něho bude posílat informace o nabíjení (id nabíječky, id nabíjejícího, počet kW, čas a datum začátku a konce nabíjení)
+- Programování mezičlenu (ESP32 nebo Raspberry).
+- Vývoj vlastního backendu a API serveru.
+- Odesílání údajů o nabíjení (ID stanice, ID uživatele, kWh, čas začátku a konce).
+
 ### Září
-- Sprovoznění backendu pro okamžité platby z účtu nebo z nabitého kreditu
+- Zprovoznění platební logiky (GoPay nebo kreditní systém).
+
 ### Říjen
-- Tvorba frontentu - přehledného responzivního webu
-- Zobrazování statistik o původu elektřiny
+- Tvorba frontendové části webu.
+- Zobrazování statistik o původu elektřiny.
+
 ### Listopad
-- Případná rezerva pro časový skluz
-- Volitelné cíle
+- Rezerva pro skluz nebo volitelné cíle.
+- Úprava dokumentace
+
 ### Prosinec
-- vytváření prezentace projektu
+- Příprava prezentace
+
 ## Získání potřebných znalostí a dovedností
-- Seznámím se s API nabíjecích stanic Solax (možná i jiných)
-- Zdokonalím se v tvorbě API, backendové i frontendové části webových aplikacích
-- Zdokonalím se v práci s hardwarem a naučím se jak fungují RFID karty
-- V případě volitelných cílů se naučím tvořit mobilní aplikace.
-## Volba technologií
- - ve fázi analýzy
+
+- Seznámím se s API nabíjecích stanic (Solax i jiné).
+- Zdokonalím se v Pythonu, tvorbě API (FastAPI), databází (PostgreSQL) a práci s Djangu.
+- Naučím se pracovat s hardwarem (ESP32, RFID).
+- Zvážím vývoj mobilní aplikace (pokud bude nutná autentizace přes NFC).
