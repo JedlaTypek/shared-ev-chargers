@@ -6,6 +6,7 @@ Chtěl bych vytvořit systém, který by dovolil lidem sdílet své domovní nab
 Když jsem hledal, jestli něco takového existuje, zjistil jsem, že v Česku pravděpodobně pár pokusů bylo, ale stránky již nefungují. V zahraničí už nějaké projekty existují, například:
 - [Go Plugable](https://www.goplugable.com/)
 - [Plug Inn](https://www.pluginn.app/en/)
+
 Go Plugable ale nabízí kompletní stanice. Tomu bych se chtěl vyhnout a chtěl bych využívat nabíjecí stanice, které už uživatel doma vlastní. Uživatelé si tedy nebudou muset kupovat nabíjecí stanici za desítky tisíc korun ale můžou využít současnou nabíječku.
 ## Výběr postupu a technologií
 ### Síťová komunikace
