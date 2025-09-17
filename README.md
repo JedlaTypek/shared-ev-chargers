@@ -8,6 +8,11 @@ Když jsem hledal, jestli něco takového existuje, zjistil jsem, že v Česku p
 - [Plug Inn](https://www.pluginn.app/en/)
 
 Go Plugable ale nabízí kompletní stanice. Tomu bych se chtěl vyhnout a chtěl bych využívat nabíjecí stanice, které už uživatel doma vlastní. Uživatelé si tedy nebudou muset kupovat nabíjecí stanici za desítky tisíc korun ale můžou využít současnou nabíječku.
+
+### Inspirace
+- https://chargemyhyundai.com
+- https://www.evmapa.cz/#
+
 ## Výběr postupu a technologií
 ### Síťová komunikace
 Chci využít **OCPP 1.6 JSON přes WebSocket** jako hlavní protokol pro komunikaci mezi nabíječkami a backendem. Nabíječky (např. Solax X3-HAC) budou OCPP klienty a připojí se přímo na OCPP server v cloudu.
