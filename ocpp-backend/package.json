@@ -1,0 +1,20 @@
+{
+  "name": "shared-ev-chargers",
+  "version": "1.0.0",
+  "description": "Backend pro OCPP nabíječky s websocket serverem, REST API (FastAPI), PostgreSQL pro data a Redis pro krátkodobé úložiště.",
+  "homepage": "https://github.com/JedlaTypek/shared-ev-chargers#readme",
+  "bugs": {
+    "url": "https://github.com/JedlaTypek/shared-ev-chargers/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JedlaTypek/shared-ev-chargers.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
