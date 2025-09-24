@@ -1,57 +1,66 @@
 const { RPCServer, createRPCError } = require('ocpp-rpc');
 
-const server = new RPCServer({
-    protocols: ['ocpp1.6'], // server accepts ocpp1.6 subprotocol
-    strictMode: true,       // enable strict validation of requests & responses
-});
-
-server.auth((accept, reject, handshake) => {
-    // accept the incoming client
-    accept({
-        // anything passed to accept() will be attached as a 'session' property of the client.
-        sessionId: 'XYZ123'
-    });
-});
-
-server.on('client', async (client) => {
-    console.log(`${client.session.sessionId} connected!`); // `XYZ123 connected!`
-
-    // create a specific handler for handling BootNotification requests
-    client.handle('BootNotification', ({params}) => {
-        console.log(`Server got BootNotification from ${client.identity}:`, params);
-
-        // respond to accept the client
-        return {
-            status: "Accepted",
-            interval: 300,
-            currentTime: new Date().toISOString()
-        };
-    });
-    
-    // create a specific handler for handling Heartbeat requests
-    client.handle('Heartbeat', ({params}) => {
-        console.log(`Server got Heartbeat from ${client.identity}:`, params);
-
-        // respond with the server's current time.
-        return {
-            currentTime: new Date().toISOString()
-        };
-    });
-    
-    // create a specific handler for handling StatusNotification requests
-    client.handle('StatusNotification', ({params}) => {
-        console.log(`Server got StatusNotification from ${client.identity}:`, params);
-        return {};
+async function start() {
+    // vytvoření nového OCPP RPC serveru
+    const server = new RPCServer({
+        protocols: ['ocpp1.6'], // server akceptuje subprotocol OCPP 1.6
+        strictMode: true,       // povolit striktní validaci requestů a responsů
     });
 
-    // create a wildcard handler to handle any RPC method
-    client.handle(({method, params}) => {
-        // This handler will be called if the incoming method cannot be handled elsewhere.
-        console.log(`Server got ${method} from ${client.identity}:`, params);
-
-        // throw an RPC error to inform the server that we don't understand the request.
-        throw createRPCError("NotImplemented");
+    // autentizace klientů při připojení
+    server.auth((accept, reject, handshake) => {
+        // přijmout příchozího klienta
+        accept({
+            // cokoliv tady vrátíš, bude připojeno jako 'session' objekt ke klientovi
+            sessionId: 'XYZ123'
+        });
     });
-});
 
-await server.listen(9000);
+    // handler pro nové klienty
+    server.on('client', async (client) => {
+        console.log(`${client.session.sessionId} connected!`); // `XYZ123 connected!`
+
+        // handler pro BootNotification request
+        client.handle('BootNotification', ({ params }) => {
+            console.log(`Server got BootNotification from ${client.identity}:`, params);
+
+            // odpověď – přijmout klienta
+            return {
+                status: "Accepted",
+                interval: 300,
+                currentTime: new Date().toISOString()
+            };
+        });
+
+        // handler pro Heartbeat request
+        client.handle('Heartbeat', ({ params }) => {
+            console.log(`Server got Heartbeat from ${client.identity}:`, params);
+
+            // odpověď – aktuální čas serveru
+            return {
+                currentTime: new Date().toISOString()
+            };
+        });
+
+        // handler pro StatusNotification request
+        client.handle('StatusNotification', ({ params }) => {
+            console.log(`Server got StatusNotification from ${client.identity}:`, params);
+            return {}; // prázdná odpověď
+        });
+
+        // fallback handler pro neznámé RPC metody
+        client.handle(({ method, params }) => {
+            console.log(`Server got ${method} from ${client.identity}:`, params);
+
+            // vyhození RPC chyby – metoda není implementovaná
+            throw createRPCError("NotImplemented");
+        });
+    });
+
+    // spuštění serveru na portu 9000
+    await server.listen(9000, '127.0.0.1');
+    console.log("OCPP backend listening on port 9000");
+}
+
+// spustit server
+start().catch(console.error);
