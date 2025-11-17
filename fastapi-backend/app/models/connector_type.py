@@ -1,7 +1,7 @@
 from enum import Enum
 from sqlalchemy import Column, Integer, String, Enum as PgEnum
 from sqlalchemy.orm import relationship
-from .user import Base
+from app.database import Base
 
 
 class CurrentType(str, Enum):
@@ -16,4 +16,5 @@ class ConnectorType(Base):
     name = Column(String(50), unique=True, nullable=False)
     current_type = Column(PgEnum(CurrentType), nullable=False)
 
+    # Vztah k tabulce connectors (každý typ může mít více konektorů)
     connectors = relationship("Connector", back_populates="type")

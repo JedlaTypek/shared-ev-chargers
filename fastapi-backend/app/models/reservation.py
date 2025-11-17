@@ -1,7 +1,8 @@
 from enum import Enum
 from sqlalchemy import Column, Integer, TIMESTAMP, ForeignKey, Enum as PgEnum
 from sqlalchemy.orm import relationship
-from .user import Base
+
+from app.database import Base
 
 
 class ReservationStatus(str, Enum):

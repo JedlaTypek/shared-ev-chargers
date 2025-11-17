@@ -1,9 +1,9 @@
 from datetime import datetime
 from enum import Enum
 from sqlalchemy import Column, Integer, String, Text, Numeric, TIMESTAMP, Enum as PgEnum
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
+from app.database import Base
 
 
 class UserRole(str, Enum):

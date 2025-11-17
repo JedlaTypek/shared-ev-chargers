@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Numeric, Boolean, ForeignKey, TIMESTAMP
 from sqlalchemy.orm import relationship
-from .user import Base
+from app.database import Base
 
 
 class Charger(Base):

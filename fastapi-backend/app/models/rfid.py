@@ -1,7 +1,8 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, ForeignKey
 from sqlalchemy.orm import relationship
-from .user import Base
+
+from app.database import Base
 
 
 class RFIDCard(Base):

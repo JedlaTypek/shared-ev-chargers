@@ -2,7 +2,8 @@ from datetime import datetime
 from enum import Enum
 from sqlalchemy import Column, Integer, Numeric, TIMESTAMP, ForeignKey, Enum as PgEnum
 from sqlalchemy.orm import relationship
-from .user import Base
+
+from app.database import Base
 
 
 class ChargeStatus(str, Enum):

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Numeric, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
-from .user import Base
+from app.database import Base
 
 
 class Connector(Base):
