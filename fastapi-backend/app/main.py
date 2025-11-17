@@ -1,31 +1,13 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
-from app.database import Base, engine
-from app import models  # noqa: F401 - needed to register SQLAlchemy models
-from app.routers import charger, user  # sem budeš přidávat další routery
 
-# Inicializace DB (vytvoří tabulky, pokud nejsou)
-Base.metadata.create_all(bind=engine)
+from app.api.v1 import user
+from app.core.config import config
+from app.core.logging import setup_logging
+from app.db.schema import Base, engine
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    debug=settings.DEBUG,
-)
+setup_logging()
 
-# Povolené CORS (dočasně otevřené pro vývoj)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title=config.app_name)
 
-# Připojení routerů
-app.include_router(user.router, prefix="/users", tags=["Users"])
-app.include_router(charger.router, prefix="/chargers", tags=["Chargers"])
-
-@app.get("/")
-def root():
-    return {"message": f"{settings.PROJECT_NAME} is running"}
+# Register routes
+app.include_router(user.router, prefix="/api/v1")

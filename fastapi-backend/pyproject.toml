@@ -1,0 +1,24 @@
+[project]
+name = "shader-ev-chargers"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.116.1",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.10.1",
+    "pydantic[email]>=2.10.1",   # pro validaci emailů
+    "pytest>=8.4.1",
+    "python-dotenv>=1.1.1",
+    "sqlalchemy>=2.0.42",
+    "uvicorn>=0.35.0",
+    "alembic>=1.17.1",
+    "passlib[bcrypt]>=1.7.4",
+    "python-jose>=3.3.0",
+    "python-multipart>=0.0.6",
+    "psycopg2-binary>=2.9"
+]
+
+[tool.pytest.ini_options]
+pythonpath = "."

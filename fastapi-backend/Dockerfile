@@ -1,11 +1,22 @@
-FROM python:3.11-slim           # malý obraz s Pythonem 3.11
-WORKDIR /app                    # pracovní adresář v kontejneru
+FROM python:3.13-slim-bookworm
 
-COPY requirements.txt .         # zkopíruje requirements
-RUN pip install --no-cache-dir -r requirements.txt
-                                # nainstaluje knihovny bez mezipaměti
+RUN apt-get update && apt-get install --no-install-recommends -y \
+        build-essential \
+        curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY . .                        # zkopíruje zbytek projektu
+ADD https://astral.sh/uv/install.sh /install.sh
+RUN chmod -R 755 /install.sh && /install.sh && rm /install.sh
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-                                # spustí API server
+ENV PATH="/root/.local/bin:${PATH}"
+
+WORKDIR /app
+COPY . .
+
+RUN uv sync
+
+ENV PATH="/app/.venv/bin:${PATH}"
+
+EXPOSE 80
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]

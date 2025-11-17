@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  api:
+    build: .
+    container_name: api
+    env_file: .env
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:16
+    container_name: postgres
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # ports:  # pouze pro vývoj – v produkci zakomentovat
+    #   - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:

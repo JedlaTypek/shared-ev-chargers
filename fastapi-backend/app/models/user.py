@@ -1,29 +1,38 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, Integer, String, Text, Numeric, TIMESTAMP, Enum as PgEnum
-from sqlalchemy.orm import relationship
 
-from app.database import Base
-
-
+# Enum pro uživatelské role
 class UserRole(str, Enum):
     user = "user"
     owner = "owner"
     admin = "admin"
 
+# Model pro vytváření uživatele
+class UserCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: Optional[UserRole] = UserRole.user
+    balance: Optional[float] = 0.0
 
-class User(Base):
-    __tablename__ = "users"
+# Model pro čtení uživatele
+class UserRead(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    role: UserRole
+    balance: float
+    created_at: datetime
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(255), unique=True, nullable=False)
-    password_hash = Column(Text, nullable=False)
-    full_name = Column(String(255))
-    role = Column(PgEnum(UserRole), default=UserRole.user, nullable=False)
-    balance = Column(Numeric(10, 2), default=0)
-    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    class Config:
+        orm_mode = True
 
-    chargers = relationship("Charger", back_populates="owner", cascade="all, delete")
-    rfid_cards = relationship("RFIDCard", back_populates="user", cascade="all, delete")
-    charge_logs = relationship("ChargeLog", back_populates="user")
-    reservations = relationship("Reservation", back_populates="user")
+# Model pro aktualizaci uživatele
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    role: Optional[UserRole] = None
+    balance: Optional[float] = None
