@@ -1,7 +1,13 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+
 from app.db.schema import User
 from app.models.user import UserCreate, UserUpdate
 
+# Pro hashování hesel (zatím jen placeholder, později použij passlib)
+# from passlib.context import CryptContext 
+# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class UserService:
     def __init__(self, session: Session):
@@ -9,22 +15,38 @@ class UserService:
 
     # -------- LIST USERS --------
     def list_users(self) -> list[User]:
-        return self._db.query(User).all()
+        # Moderní syntaxe SQLAlchemy 2.0
+        stmt = select(User)
+        result = self._db.execute(stmt)
+        return result.scalars().all()
 
     # -------- GET USER --------
     def get_user(self, user_id: int) -> User | None:
-        return self._db.query(User).filter(User.id == user_id).first()
+        stmt = select(User).where(User.id == user_id)
+        return self._db.execute(stmt).scalars().first()
+    
+    # -------- GET USER BY EMAIL (pomocná funkce) --------
+    def get_user_by_email(self, email: str) -> User | None:
+        stmt = select(User).where(User.email == email)
+        return self._db.execute(stmt).scalars().first()
 
     # -------- CREATE USER --------
     def create_user(self, user_data: UserCreate) -> User:
-        # vytvoříme ORM objekt User (SQLAlchemy model)
+        # 1. Kontrola duplicity emailu (čistší než chytat IntegrityError)
+        if self.get_user_by_email(user_data.email):
+            raise ValueError("Email already registered")
+
+        # 2. Hashování hesla (TODO: Implementovat doopravdy)
+        hashed_password = user_data.password + "not_really_hashed" 
+        
         user = User(
             name=user_data.name,
             email=user_data.email,
-            password=user_data.password,   # tady budeš později hashovat
+            password=hashed_password, 
             role=user_data.role,
             balance=user_data.balance,
         )
+        
         self._db.add(user)
         self._db.commit()
         self._db.refresh(user)
@@ -36,9 +58,13 @@ class UserService:
         if not user:
             return None
 
-        # projdi jednotlivá pole a jen ta, která nejsou None, aktualizuj
         update_fields = user_data.model_dump(exclude_unset=True)
+        
         for field, value in update_fields.items():
+            # Pokud se mění heslo, musíme ho znovu zahashovat!
+            if field == "password" and value:
+                value = value + "not_really_hashed" # TODO: Hash
+            
             setattr(user, field, value)
 
         self._db.commit()
@@ -50,6 +76,7 @@ class UserService:
         user = self.get_user(user_id)
         if not user:
             return False
+        
         self._db.delete(user)
         self._db.commit()
         return True

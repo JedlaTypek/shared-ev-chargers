@@ -1,6 +1,7 @@
 from typing import Optional, List
 from datetime import datetime, timezone
 import enum
+from decimal import Decimal  # Přidáno pro typování
 
 from sqlalchemy import (
     String,
@@ -9,7 +10,8 @@ from sqlalchemy import (
     Enum as SQLEnum,
     create_engine,
     ForeignKey,
-    Numeric,
+    Numeric,  # Používáme pro peníze
+    Integer,  # Používáme pro Watty
     Boolean,
     UniqueConstraint,
 )
@@ -53,7 +55,9 @@ class User(Base):
         default=UserRole.user,
         nullable=False
     )
-    balance: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    
+    # ZMĚNA: Float -> Numeric(10, 2) pro přesné finance
+    balance: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0.0, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -127,8 +131,13 @@ class Connector(Base):
 
     type: Mapped[ConnectorType] = mapped_column(SQLEnum(ConnectorType), nullable=False)
     current_type: Mapped[CurrentType] = mapped_column(SQLEnum(CurrentType), nullable=False)
-    max_power_kw: Mapped[float] = mapped_column(Float, nullable=False)
-    price_per_kwh: Mapped[float] = mapped_column(Float, nullable=False)
+    
+    # ZMĚNA: Float (kW) -> Integer (W)
+    max_power_w: Mapped[int] = mapped_column(Integer, nullable=False)
+    
+    # ZMĚNA: Float -> Numeric. Cenu necháváme za kWh, je to standard, ale typ je Decimal.
+    price_per_kwh: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     charger: Mapped["Charger"] = relationship(back_populates="connectors")
@@ -156,6 +165,7 @@ class Charger(Base):
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
 
+    # Zde ponecháváme Float - GPS souřadnice jsou floating point
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
 
@@ -225,8 +235,11 @@ class ChargeLog(Base):
 
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    energy_kwh: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # ZMĚNA: Float (kWh) -> Integer (Wh). Ukládáme watthodiny pro maximální přesnost.
+    energy_wh: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    
+    # ZMĚNA: Float -> Numeric(10, 2)
+    price: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
 
     status: Mapped[ChargeStatus] = mapped_column(
         SQLEnum(ChargeStatus),
@@ -234,7 +247,7 @@ class ChargeLog(Base):
         nullable=False
     )
 
-    # Relationships (back_populates pro čitelnost a eager loading)
+    # Relationships
     user: Mapped[Optional["User"]] = relationship(back_populates="charge_logs")
     charger: Mapped[Optional["Charger"]] = relationship(back_populates="charge_logs")
     connector: Mapped[Optional["Connector"]] = relationship(back_populates="charge_logs")

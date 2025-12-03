@@ -1,0 +1,40 @@
+services:
+  api:
+    build: ./fastapi-backend
+    container_name: api
+    env_file: ./fastapi-backend/.env
+    ports:
+      - "8000:80"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./fastapi-backend/app:/app/app   # pro vývoj – v produkci zakomentuj
+
+  ocpp:
+    build: ./ocpp-backend
+    container_name: ocpp
+    env_file: ./ocpp-backend/.env
+    ports:
+      - "9000:9000"   # pokud v index.js startuješ ws na 9000
+    depends_on:
+      - redis
+      - api
+
+  db:
+    image: postgres:16
+    container_name: db
+    env_file: ./fastapi-backend/.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # ports:
+    #   - "5432:5432"   # jen pro vývoj
+
+  redis:
+    image: redis:7
+    container_name: redis
+    # ports:
+    #   - "6379:6379"   # jen pro vývoj
+
+volumes:
+  pgdata:

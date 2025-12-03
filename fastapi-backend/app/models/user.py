@@ -1,33 +1,36 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from decimal import Decimal
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum
 
-# Enum pro uživatelské role
-class UserRole(str, Enum):
-    user = "user"
-    owner = "owner"
-    admin = "admin"
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+
+from app.models.enums import UserRole
 
 # Model pro vytváření uživatele
 class UserCreate(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1)
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6)
     role: Optional[UserRole] = UserRole.user
-    balance: Optional[float] = 0.0
+    
+    # Změna na Decimal. Výchozí hodnota jako string "0.00" zajistí přesnost.
+    balance: Optional[Decimal] = Decimal("0.00")
 
-# Model pro čtení uživatele
+# Model pro čtení uživatele (Response)
 class UserRead(BaseModel):
     id: int
     name: str
     email: EmailStr
     role: UserRole
-    balance: float
+    
+    # Změna na Decimal
+    balance: Decimal
+    
     created_at: datetime
 
-    class Config:
-        orm_mode = True
+    # Moderní konfigurace pro Pydantic V2 (nahrazuje class Config)
+    model_config = ConfigDict(from_attributes=True)
 
 # Model pro aktualizaci uživatele
 class UserUpdate(BaseModel):
@@ -35,4 +38,6 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
     role: Optional[UserRole] = None
-    balance: Optional[float] = None
+    
+    # Změna na Decimal
+    balance: Optional[Decimal] = None

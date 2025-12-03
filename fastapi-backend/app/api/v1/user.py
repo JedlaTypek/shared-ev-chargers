@@ -1,22 +1,29 @@
-from fastapi import APIRouter, Depends, HTTPException
-
-from app.db.schema import SessionLocal
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.api.v1.deps import get_db # Import veřejné závislosti pro DB session
 from app.models.user import UserCreate, UserRead, UserUpdate
 from app.services.user_service import UserService
 
 router = APIRouter()
 
-def get_user_service() -> UserService:
-    return UserService(session=SessionLocal())
+# Dependency pro Service, která dostane DB session
+def get_user_service(db: Session = Depends(get_db)) -> UserService:
+    return UserService(session=db)
 
 # -------------------- User Endpoints --------------------
+
 @router.get("/users", response_model=list[UserRead], tags=["User"])
 def get_users(service: UserService = Depends(get_user_service)):
     return service.list_users()
 
-@router.post("/users", response_model=UserRead, tags=["User"])
+# Změna: Status code 201 (Created) je standard pro POST
+@router.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED, tags=["User"])
 def create_user(user: UserCreate, service: UserService = Depends(get_user_service)):
-    return service.create_user(user)
+    # Service nyní může vyhodit výjimku, pokud email existuje
+    try:
+        return service.create_user(user)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/users/{user_id}", response_model=UserRead, tags=["User"])
 def get_user(user_id: int, service: UserService = Depends(get_user_service)):
