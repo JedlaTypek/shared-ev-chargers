@@ -1,42 +1,36 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
-
 from app.db.schema import User
 from app.models.user import UserCreate, UserUpdate
 
-# Pro hashování hesel (zatím jen placeholder, později použij passlib)
-# from passlib.context import CryptContext 
-# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 class UserService:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self._db = session
 
     # -------- LIST USERS --------
-    def list_users(self) -> list[User]:
-        # Moderní syntaxe SQLAlchemy 2.0
+    async def list_users(self) -> list[User]:
         stmt = select(User)
-        result = self._db.execute(stmt)
+        result = await self._db.execute(stmt)
         return result.scalars().all()
 
     # -------- GET USER --------
-    def get_user(self, user_id: int) -> User | None:
+    async def get_user(self, user_id: int) -> User | None:
         stmt = select(User).where(User.id == user_id)
-        return self._db.execute(stmt).scalars().first()
+        result = await self._db.execute(stmt)
+        return result.scalars().first()
     
-    # -------- GET USER BY EMAIL (pomocná funkce) --------
-    def get_user_by_email(self, email: str) -> User | None:
+    # -------- GET USER BY EMAIL --------
+    async def get_user_by_email(self, email: str) -> User | None:
         stmt = select(User).where(User.email == email)
-        return self._db.execute(stmt).scalars().first()
+        result = await self._db.execute(stmt)
+        return result.scalars().first()
 
     # -------- CREATE USER --------
-    def create_user(self, user_data: UserCreate) -> User:
-        # 1. Kontrola duplicity emailu (čistší než chytat IntegrityError)
-        if self.get_user_by_email(user_data.email):
+    async def create_user(self, user_data: UserCreate) -> User:
+        # Volání async metody s await
+        if await self.get_user_by_email(user_data.email):
             raise ValueError("Email already registered")
 
-        # 2. Hashování hesla (TODO: Implementovat doopravdy)
         hashed_password = user_data.password + "not_really_hashed" 
         
         user = User(
@@ -47,36 +41,38 @@ class UserService:
             balance=user_data.balance,
         )
         
+        # .add() je synchronní operace (jen přidává do session state)
         self._db.add(user)
-        self._db.commit()
-        self._db.refresh(user)
+        
+        # IO operace jsou async
+        await self._db.commit()
+        await self._db.refresh(user)
         return user
 
     # -------- UPDATE USER --------
-    def update_user(self, user_id: int, user_data: UserUpdate) -> User | None:
-        user = self.get_user(user_id)
+    async def update_user(self, user_id: int, user_data: UserUpdate) -> User | None:
+        user = await self.get_user(user_id)
         if not user:
             return None
 
         update_fields = user_data.model_dump(exclude_unset=True)
         
         for field, value in update_fields.items():
-            # Pokud se mění heslo, musíme ho znovu zahashovat!
             if field == "password" and value:
-                value = value + "not_really_hashed" # TODO: Hash
-            
+                value = value + "not_really_hashed"
             setattr(user, field, value)
 
-        self._db.commit()
-        self._db.refresh(user)
+        await self._db.commit()
+        await self._db.refresh(user)
         return user
 
     # -------- DELETE USER --------
-    def delete_user(self, user_id: int) -> bool:
-        user = self.get_user(user_id)
+    async def delete_user(self, user_id: int) -> bool:
+        user = await self.get_user(user_id)
         if not user:
             return False
         
-        self._db.delete(user)
-        self._db.commit()
+        # .delete() je synchronní
+        await self._db.delete(user)
+        await self._db.commit()
         return True

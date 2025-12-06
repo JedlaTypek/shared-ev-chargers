@@ -1,11 +1,14 @@
-import { loadHandlers } from "./handlerLoader.js";
-import { schemas } from "./schemaLoader.js";
+import { loadHandlers } from "./utils/handlerLoader.js";
+import { loadSchemas } from "./utils/schemaLoader.js";
 
-// Handlery načteme jen jednou při startu
+// Načtení handlerů a schémat při startu
 const handlers = await loadHandlers();
 
+// OPRAVA: loadSchemas je funkce, musíme ji zavolat, abychom dostali mapu schémat
+const schemas = loadSchemas(); 
+
 export async function routeRequest(client, action, payload, messageId) {
-  // Logování příchozího requestu (jako DEBUG, aby to nezahlcovalo produkci)
+  // Logování příchozího requestu
   client.log.debug({ action, payload, messageId }, "📩 Incoming request");
 
   const handler = handlers[action];
@@ -18,7 +21,7 @@ export async function routeRequest(client, action, payload, messageId) {
     };
   }
 
-  // Validate payload vs JSON schema
+  // Validace
   const validate = schemas[action]?.req?.validate;
   if (validate && !validate(payload)) {
     client.log.error({ action, errors: validate.errors }, "❌ Schema validation failed");
@@ -29,16 +32,11 @@ export async function routeRequest(client, action, payload, messageId) {
   }
 
   try {
-      // Spuštění handleru
       const result = await handler({ client, payload, messageId });
-      
-      // Logování úspěšné odpovědi (také spíše DEBUG)
       client.log.debug({ action, result }, "✅ Request handled successfully");
-      
       return result;
   } catch (error) {
-      // Logování chyby při zpracování v handleru
       client.log.error({ action, err: error }, "💥 Error inside handler");
-      throw error; // Poslat chybu zpět nabíječce
+      throw error;
   }
 }

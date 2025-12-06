@@ -1,33 +1,26 @@
 from typing import Optional, List
 from datetime import datetime, timezone
 import enum
-from decimal import Decimal  # Přidáno pro typování
+from decimal import Decimal
 
+# ZMĚNA: Importy pro async SQLAlchemy
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import (
-    String,
-    Float,
-    DateTime,
-    Enum as SQLEnum,
-    create_engine,
-    ForeignKey,
-    Numeric,  # Používáme pro peníze
-    Integer,  # Používáme pro Watty
-    Boolean,
-    UniqueConstraint,
+    String, Float, DateTime, Enum as SQLEnum, ForeignKey, Numeric, Integer, Boolean, UniqueConstraint
 )
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    Mapped,
-    mapped_column,
-    sessionmaker,
-    relationship,
-)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from app.core.config import config
 
-engine = create_engine(config.db_url)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+# ZMĚNA: Asynchronní engine
+engine = create_async_engine(config.db_url, echo=config.debug)
 
+# ZMĚNA: Asynchronní session maker
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False
+)
 
 class Base(DeclarativeBase):
     pass
@@ -120,25 +113,16 @@ class Connector(Base):
     __tablename__ = "connectors"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-
-    charger_id: Mapped[int] = mapped_column(
-        ForeignKey("chargers.id", ondelete="CASCADE"),
-        nullable=False
-    )
-
-    # OCPP connector number (local to a charger)
+    charger_id: Mapped[int] = mapped_column(ForeignKey("chargers.id", ondelete="CASCADE"), nullable=False)
     ocpp_number: Mapped[int] = mapped_column(nullable=False)
 
-    type: Mapped[ConnectorType] = mapped_column(SQLEnum(ConnectorType), nullable=False)
-    current_type: Mapped[CurrentType] = mapped_column(SQLEnum(CurrentType), nullable=False)
+    # Statická data (konfigurace) - povolen NULL pro auto-discovery
+    type: Mapped[Optional[ConnectorType]] = mapped_column(SQLEnum(ConnectorType), nullable=True)
+    current_type: Mapped[Optional[CurrentType]] = mapped_column(SQLEnum(CurrentType), nullable=True)
+    max_power_w: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    price_per_kwh: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
     
-    # ZMĚNA: Float (kW) -> Integer (W)
-    max_power_w: Mapped[int] = mapped_column(Integer, nullable=False)
-    
-    # ZMĚNA: Float -> Numeric. Cenu necháváme za kWh, je to standard, ale typ je Decimal.
-    price_per_kwh: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     charger: Mapped["Charger"] = relationship(back_populates="connectors")
     charge_logs: Mapped[List["ChargeLog"]] = relationship(back_populates="connector")

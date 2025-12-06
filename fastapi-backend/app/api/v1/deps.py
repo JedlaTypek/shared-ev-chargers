@@ -1,11 +1,23 @@
-# app/api/deps.py
-from typing import Generator
-from app.db.schema import SessionLocal
+from typing import AsyncGenerator
+import redis.asyncio as redis # ZMĚNA: redis.asyncio
+from app.db.schema import AsyncSessionLocal
+from app.core.config import config
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# Tato funkce je nyní veřejná a sdílená pro celou aplikaci
-def get_db() -> Generator:
-    db = SessionLocal()
+# PostrgeSQL Async session
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
+
+# Redis Async client
+async def get_redis() -> AsyncGenerator[redis.Redis, None]:
+    # redis.asyncio.Redis má stejné API, ale metody jsou awaitable
+    r = redis.Redis(
+        host=config.redis_host, 
+        port=config.redis_port, 
+        decode_responses=True
+    )
     try:
-        yield db
+        yield r
     finally:
-        db.close()
+        await r.close() # ZMĚNA: await close

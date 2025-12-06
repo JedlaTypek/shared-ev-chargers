@@ -17,7 +17,9 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "python-jose>=3.3.0",
     "python-multipart>=0.0.6",
-    "psycopg2-binary>=2.9",
+    # ZMĚNA: psycopg2 nahradíme/doplníme o asyncpg
+    "asyncpg>=0.29.0", 
+    "psycopg2-binary>=2.9", # Může zůstat pro synchronní skripty, ale runtime pojede na asyncpg
     "redis>=5.2.0"
 ]
 

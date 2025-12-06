@@ -1,32 +1,34 @@
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
 from app.db.schema import Charger
 from app.models.charger import ChargerCreate, ChargerUpdate
 
 class ChargerService:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self._db = session
 
-    def list_chargers(self, skip: int = 0, limit: int = 100) -> list[Charger]:
-        # Eager loading konektorů, abychom je viděli ve výstupu
+    async def list_chargers(self, skip: int = 0, limit: int = 100) -> list[Charger]:
         stmt = select(Charger).options(selectinload(Charger.connectors)).offset(skip).limit(limit)
-        result = self._db.execute(stmt)
+        result = await self._db.execute(stmt)
         return result.scalars().all()
 
-    def get_charger(self, charger_id: int) -> Charger | None:
+    async def get_charger(self, charger_id: int) -> Charger | None:
         stmt = select(Charger).options(selectinload(Charger.connectors)).where(Charger.id == charger_id)
-        return self._db.execute(stmt).scalars().first()
+        result = await self._db.execute(stmt)
+        return result.scalars().first()
 
-    def create_charger(self, data: ChargerCreate) -> Charger:
-        # Kontrola unikátnosti OCPP ID
+    async def create_charger(self, data: ChargerCreate) -> Charger:
         if data.ocpp_id:
-            existing = self._db.execute(select(Charger).where(Charger.ocpp_id == data.ocpp_id)).scalars().first()
+            stmt = select(Charger).where(Charger.ocpp_id == data.ocpp_id)
+            existing_result = await self._db.execute(stmt)
+            existing = existing_result.scalars().first()
             if existing:
                 raise ValueError(f"Charger with OCPP ID '{data.ocpp_id}' already exists")
 
         charger = Charger(
-            owner_id=data.owner_id, # Dočasně bereme z inputu
+            owner_id=data.owner_id,
             name=data.name,
             latitude=data.latitude,
             longitude=data.longitude,
@@ -40,12 +42,12 @@ class ChargerService:
         )
         
         self._db.add(charger)
-        self._db.commit()
-        self._db.refresh(charger)
+        await self._db.commit()
+        await self._db.refresh(charger)
         return charger
 
-    def update_charger(self, charger_id: int, data: ChargerUpdate) -> Charger | None:
-        charger = self.get_charger(charger_id)
+    async def update_charger(self, charger_id: int, data: ChargerUpdate) -> Charger | None:
+        charger = await self.get_charger(charger_id)
         if not charger:
             return None
 
@@ -53,15 +55,15 @@ class ChargerService:
         for key, value in update_data.items():
             setattr(charger, key, value)
 
-        self._db.commit()
-        self._db.refresh(charger)
+        await self._db.commit()
+        await self._db.refresh(charger)
         return charger
 
-    def delete_charger(self, charger_id: int) -> bool:
-        charger = self.get_charger(charger_id)
+    async def delete_charger(self, charger_id: int) -> bool:
+        charger = await self.get_charger(charger_id)
         if not charger:
             return False
         
-        self._db.delete(charger)
-        self._db.commit()
+        await self._db.delete(charger)
+        await self._db.commit()
         return True

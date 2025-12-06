@@ -14,14 +14,17 @@ class ConnectorBase(BaseModel):
 class ConnectorCreate(ConnectorBase):
     charger_id: int
 
-class ConnectorUpdate(BaseModel):
-    type: Optional[ConnectorType] = None
-    max_power_w: Optional[int] = None
-    price_per_kwh: Optional[Decimal] = None
-    is_active: Optional[bool] = None
+class ConnectorStatusUpdate(BaseModel):
+    ocpp_id: str
+    connector_number: int
+    status: str
+    error_code: Optional[str] = None
 
 class ConnectorRead(ConnectorBase):
     id: int
     charger_id: int
     
+    # Toto pole vyplníme z Redisu, v PostgreSQL není
+    status: Optional[str] = "Unknown" 
+
     model_config = ConfigDict(from_attributes=True)

@@ -1,31 +1,44 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-# Musíte importovat všechny moduly s routami
-from app.api.v1 import user, charger, connector, rfid
 from app.core.config import config
-from app.core.logging import setup_logging
-# from app.db.schema import Base, engine # Pokud nepoužíváte alembic, odkomentujte pro auto-create tabulek
+from app.api.v1 import user, charger, connector, rfid # Importujeme routery
 
-setup_logging()
+app = FastAPI(
+    title=config.project_name,
+    version=config.project_version,
+    openapi_url="/api/v1/openapi.json",
+    docs_url="/api/v1/docs",
+    redoc_url="/api/v1/redoc",
+)
 
-app = FastAPI(title=config.app_name)
+# Nastavení CORS (aby se na API dalo volat z frontendu/prohlížeče)
+if config.backend_cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in config.backend_cors_origins],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-# --- REGISTRACE ROUT ---
+@app.get("/")
+def root():
+    return {"message": "Welcome to Shared EV Chargers API"}
+
+# ---------------------------------------------------------
+# Registrace Routerů
+# ---------------------------------------------------------
 
 # 1. Users
-# V user.py máte definované cesty jako "/users", takže prefix stačí "/api/v1"
-# Výsledek: /api/v1/users
-app.include_router(user.router, prefix="/api/v1")
+app.include_router(user.router, prefix="/api/v1/users", tags=["Users"])
 
 # 2. Chargers
-# V charger.py jsem definoval cesty jako "" (prázdné), takže prefix musí obsahovat název zdroje
-# Výsledek: /api/v1/chargers
 app.include_router(charger.router, prefix="/api/v1/chargers", tags=["Chargers"])
 
-# 3. Connectors
-# Výsledek: /api/v1/connectors
+# 3. Connectors 
+# Necháváme samostatně pro přímý přístup (např. GET /connectors/{id} nebo webhooky)
 app.include_router(connector.router, prefix="/api/v1/connectors", tags=["Connectors"])
 
 # 4. RFID Cards
-# Výsledek: /api/v1/rfid-cards
 app.include_router(rfid.router, prefix="/api/v1/rfid-cards", tags=["RFID Cards"])

@@ -1,6 +1,6 @@
 import { RPCServer } from "ocpp-rpc";
 import { routeRequest } from "./router.js";
-import logger from "./utils/logger.js"; // Import loggeru
+import logger from "./utils/logger.js";
 
 async function start() {
   const server = new RPCServer({
