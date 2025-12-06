@@ -8,3 +8,5 @@
 **Dokumentace:** https://deepwiki.com/shiv3/ocpp-cp-simulator/1-overview
 ### OCPP virtual charge point
 **Github:** https://github.com/solidstudiosh/ocpp-virtual-charge-point
+## Schemas
+Schémata jednotlivých requestů a odpovědí ve složce `src/schemas/` jsem zkopíroval z dokumentace protokolu.
