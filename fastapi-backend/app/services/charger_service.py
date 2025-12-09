@@ -3,13 +3,14 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 from redis.asyncio import Redis
 
-<<<<<<< HEAD
-from app.db.schema import Charger
-from app.models.charger import ChargerCreate, ChargerTechnicalStatus, ChargerUpdate
-=======
+# Sloučené importy z obou větví
 from app.db.schema import Charger, RFIDCard
-from app.models.charger import ChargerCreate, ChargerUpdate, ChargerAuthorizeRequest
->>>>>>> 6fefceb4222a1a64705e382b46671648a9cf5ffe
+from app.models.charger import (
+    ChargerCreate, 
+    ChargerUpdate, 
+    ChargerTechnicalStatus, 
+    ChargerAuthorizeRequest
+)
 
 class ChargerService:
     def __init__(self, session: AsyncSession, redis: Redis = None):
@@ -75,7 +76,8 @@ class ChargerService:
         await self._db.commit()
         return True
     
-<<<<<<< HEAD
+    # --- Metody pro BootNotification / Auto-discovery ---
+
     async def get_charger_by_ocpp_id(self, ocpp_id: str) -> Charger | None:
         """Najde nabíječku podle textového OCPP ID"""
         stmt = (
@@ -105,7 +107,9 @@ class ChargerService:
         await self._db.commit()
         await self._db.refresh(charger)
         return charger
-=======
+
+    # --- Metody pro Authorize (RFID) ---
+
     async def authorize_tag(self, ocpp_id: str, id_tag: str) -> dict:
         """
         Ověří kartu a pokud je platná, uloží ji dočasně do Redisu.
@@ -145,7 +149,7 @@ class ChargerService:
         # D. Vrátíme úspěch ve formátu pro OCPP
         return {
             "status": "Accepted",
-            # "expiryDate": ..., # Volitelné
+            # "expiryDate": ..., # Volitelné, expiraci řešíme v Redisu
             # "parentIdTag": ... # Volitelné
         }
 
@@ -160,4 +164,3 @@ class ChargerService:
         redis_key = f"charger:{ocpp_id}:authorized_tag"
         tag = await self._redis.get(redis_key)
         return tag
->>>>>>> 6fefceb4222a1a64705e382b46671648a9cf5ffe

@@ -2,13 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 
-<<<<<<< HEAD
-from app.api.v1.deps import get_db
-from app.models.charger import ChargerCreate, ChargerRead, ChargerTechnicalStatus, ChargerUpdate
-=======
+# Sloučené importy (DB i Redis)
 from app.api.v1.deps import get_db, get_redis
-from app.models.charger import ChargerCreate, ChargerRead, ChargerUpdate, ChargerAuthorizeRequest, ChargerTechnicalStatus
->>>>>>> 6fefceb4222a1a64705e382b46671648a9cf5ffe
+# Sloučené modely (TechnicalStatus pro Boot, AuthorizeRequest pro RFID)
+from app.models.charger import (
+    ChargerCreate, 
+    ChargerRead, 
+    ChargerUpdate, 
+    ChargerTechnicalStatus, 
+    ChargerAuthorizeRequest
+)
 from app.services.charger_service import ChargerService
 
 router = APIRouter()
@@ -64,8 +67,8 @@ async def delete_charger(
         raise HTTPException(status_code=404, detail="Charger not found")
     return
 
-<<<<<<< HEAD
-# Endpoint pro OCPP Server (Webhook)
+# --- OCPP Endpoints ---
+
 @router.post("/boot-notification/{ocpp_id}", response_model=ChargerRead)
 async def handle_boot_notification(
     ocpp_id: str,
@@ -83,7 +86,7 @@ async def handle_boot_notification(
         raise HTTPException(status_code=404, detail="Charger not registered")
         
     return charger
-=======
+
 @router.post("/authorize/{ocpp_id}")
 async def authorize_charger(
     ocpp_id: str,
@@ -118,4 +121,3 @@ async def get_authorized_tag(
         raise HTTPException(status_code=404, detail="No authorized tag found (or expired)")
     
     return {"id_tag": tag}
->>>>>>> 6fefceb4222a1a64705e382b46671648a9cf5ffe
