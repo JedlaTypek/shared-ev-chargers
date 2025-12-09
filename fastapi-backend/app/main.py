@@ -22,7 +22,7 @@ if config.backend_cors_origins:
         allow_headers=["*"],
     )
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def root():
     return {"message": "Welcome to Shared EV Chargers API"}
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.deps import get_db
-from app.models.charger import ChargerCreate, ChargerRead, ChargerUpdate
+from app.models.charger import ChargerCreate, ChargerRead, ChargerTechnicalStatus, ChargerUpdate
 from app.services.charger_service import ChargerService
 
 router = APIRouter()
@@ -54,3 +54,22 @@ async def delete_charger(
     if not success:
         raise HTTPException(status_code=404, detail="Charger not found")
     return
+
+# Endpoint pro OCPP Server (Webhook)
+@router.post("/boot-notification/{ocpp_id}", response_model=ChargerRead)
+async def handle_boot_notification(
+    ocpp_id: str,
+    data: ChargerTechnicalStatus,
+    service: ChargerService = Depends(get_charger_service)
+):
+    """
+    Voláno z Node.js při startu nabíječky.
+    Ověří existenci a uloží technická data.
+    """
+    charger = await service.update_technical_status(ocpp_id, data)
+    
+    if not charger:
+        # 404 vrátí Node.js serveru signál, že má poslat "Rejected"
+        raise HTTPException(status_code=404, detail="Charger not registered")
+        
+    return charger

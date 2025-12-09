@@ -3,7 +3,7 @@ from sqlalchemy import select
 from redis.asyncio import Redis # Async redis
 
 from app.db.schema import Connector, Charger
-from app.models.connector import ConnectorCreate, ConnectorStatusUpdate, ConnectorRead
+from app.models.connector import ConnectorCreate, ConnectorStatusUpdate, ConnectorRead, ConnectorUpdate
 
 class ConnectorService:
     def __init__(self, session: AsyncSession, redis: Redis):
@@ -63,3 +63,22 @@ class ConnectorService:
         response_model = ConnectorRead.model_validate(connector)
         response_model.status = status if status else "Unknown"
         return response_model
+    
+    async def update_connector(self, connector_id: int, data: ConnectorUpdate) -> Connector | None:
+        # 1. Najdeme konektor (nepotřebujeme joinovat status z Redisu pro update)
+        stmt = select(Connector).where(Connector.id == connector_id)
+        result = await self._db.execute(stmt)
+        connector = result.scalars().first()
+
+        if not connector:
+            return None
+
+        # 2. Aplikujeme změny
+        update_data = data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(connector, key, value)
+
+        # 3. Uložíme
+        await self._db.commit()
+        await self._db.refresh(connector)
+        return connector

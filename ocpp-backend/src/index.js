@@ -1,6 +1,7 @@
 import { RPCServer } from "ocpp-rpc";
 import { routeRequest } from "./router.js";
 import logger from "./utils/logger.js";
+import { config } from "./utils/config.js";
 
 async function start() {
   const server = new RPCServer({
@@ -35,8 +36,8 @@ async function start() {
     });
   });
 
-  await server.listen(9000, "0.0.0.0");
-  logger.info("🚀 OCPP backend listening on port 9000");
+  await server.listen(config.port, "0.0.0.0");
+  logger.info("🚀 OCPP backend listening on port ", config.port);
 }
 
 start().catch((err) => {

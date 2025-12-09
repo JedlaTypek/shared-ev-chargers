@@ -3,7 +3,9 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 class Config(BaseSettings):
-    app_name: str = "Shared EV Chargers"
+    project_name: str = "Shared EV Chargers"
+    project_version: str = "0.1.0"
+    
     debug: bool = False
 
     # Postgres

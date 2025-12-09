@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 
 from app.api.v1.deps import get_db, get_redis
-from app.models.connector import ConnectorStatusUpdate, ConnectorRead
+from app.models.connector import ConnectorStatusUpdate, ConnectorRead, ConnectorUpdate
 from app.services.connector_service import ConnectorService
 
 router = APIRouter()
@@ -35,3 +35,22 @@ async def get_connector( # ZMĚNA: async def
     if not connector:
         raise HTTPException(status_code=404, detail="Connector not found")
     return connector
+
+@router.patch("/{connector_id}", response_model=ConnectorRead)
+async def update_connector(
+    connector_id: int,
+    connector_update: ConnectorUpdate,
+    service: ConnectorService = Depends(get_connector_service)
+):
+    """
+    Klíčový endpoint pro majitele:
+    Zde doplní cenu, výkon a typ konektoru poté, co ho systém automaticky detekoval.
+    Nakonec nastaví is_active=True.
+    """
+    updated = await service.update_connector(connector_id, connector_update)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Connector not found")
+    
+    # Pro vrácení response musíme načíst i status z Redisu (aby model seděl)
+    # Můžeme zavolat tvou existující metodu:
+    return await service.get_connector_with_status(connector_id)

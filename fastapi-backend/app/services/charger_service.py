@@ -3,7 +3,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
 from app.db.schema import Charger
-from app.models.charger import ChargerCreate, ChargerUpdate
+from app.models.charger import ChargerCreate, ChargerTechnicalStatus, ChargerUpdate
 
 class ChargerService:
     def __init__(self, session: AsyncSession):
@@ -67,3 +67,33 @@ class ChargerService:
         await self._db.delete(charger)
         await self._db.commit()
         return True
+    
+    async def get_charger_by_ocpp_id(self, ocpp_id: str) -> Charger | None:
+        """Najde nabíječku podle textového OCPP ID"""
+        stmt = (
+            select(Charger)
+            .options(selectinload(Charger.connectors))
+            .where(Charger.ocpp_id == ocpp_id)
+        )
+        result = await self._db.execute(stmt)
+        return result.scalars().first()
+
+    async def update_technical_status(self, ocpp_id: str, data: ChargerTechnicalStatus) -> Charger | None:
+        """
+        Aktualizuje metadata (firmware, model...) při startu nabíječky.
+        Zároveň slouží jako ověření, že nabíječka existuje.
+        """
+        charger = await self.get_charger_by_ocpp_id(ocpp_id)
+        
+        if not charger:
+            return None # Nabíječka neexistuje -> Odmítnout připojení
+        
+        # Aktualizujeme pouze pole, která přišla vyplněná
+        if data.vendor: charger.vendor = data.vendor
+        if data.model: charger.model = data.model
+        if data.serial_number: charger.serial_number = data.serial_number
+        if data.firmware_version: charger.firmware_version = data.firmware_version
+        
+        await self._db.commit()
+        await self._db.refresh(charger)
+        return charger

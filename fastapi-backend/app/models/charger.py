@@ -28,9 +28,22 @@ class ChargerUpdate(BaseModel):
 
 class ChargerRead(ChargerBase):
     id: int
+
+    # Přidáme metadata i do výstupu API (užitečné pro frontend/admin)
+    vendor: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    firmware_version: Optional[str] = None
+
     owner_id: int
     created_at: datetime
     # Abychom viděli i konektory rovnou u nabíječky
     connectors: List[ConnectorRead] = [] 
 
     model_config = ConfigDict(from_attributes=True)
+
+class ChargerTechnicalStatus(BaseModel):
+    vendor: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    firmware_version: Optional[str] = None

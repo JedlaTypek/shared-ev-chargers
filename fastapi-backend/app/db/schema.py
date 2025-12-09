@@ -140,40 +140,36 @@ class Charger(Base):
     __tablename__ = "chargers"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-
-    # Foreign Key to User
-    owner_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"),
-        nullable=False
-    )
-
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-
-    # Zde ponecháváme Float - GPS souřadnice jsou floating point
+    
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
-
     street: Mapped[Optional[str]] = mapped_column(String(255))
     house_number: Mapped[Optional[str]] = mapped_column(String(20))
     city: Mapped[Optional[str]] = mapped_column(String(100))
     postal_code: Mapped[Optional[str]] = mapped_column(String(20))
     region: Mapped[Optional[str]] = mapped_column(String(100))
-
+    
+    # Unikátní identifikátor pro OCPP
     ocpp_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True)
 
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # --- NOVÉ SLOUPCE (Metadata z BootNotification) ---
+    vendor: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    model: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    serial_number: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    firmware_version: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    # --------------------------------------------------
 
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        nullable=False
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
 
-    # Relationships
     owner: Mapped["User"] = relationship(back_populates="chargers")
     connectors: Mapped[List["Connector"]] = relationship(back_populates="charger")
     charge_logs: Mapped[List["ChargeLog"]] = relationship(back_populates="charger")
-
 
 ########################
 # Charge logs

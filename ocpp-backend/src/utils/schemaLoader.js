@@ -4,16 +4,17 @@ import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import logger from "./logger.js"; 
 
-const ajv = new Ajv({ allErrors: true });
+// 1. Inicializace AJV s vypnutou striktní kontrolou
+const ajv = new Ajv({ 
+  allErrors: true,
+  strict: false,        // Ignoruje varování o chybějících definicích
+  validateSchema: false // Nevaliduje samotné schéma (to způsobuje tu chybu)
+});
 addFormats(ajv);
 
 export function loadSchemas() {
-  // Cesta k adresáři se schématy. 
-  // process.cwd() vrací kořen projektu, takže cesta "src/schemas" je správná, 
-  // pokud spouštíš aplikaci příkazem `npm start` z kořenové složky.
   const schemasDir = path.join(process.cwd(), "src/schemas");
 
-  // Kontrola, zda složka existuje
   if (!fs.existsSync(schemasDir)) {
     logger.error(`❌ Schemas directory not found at: ${schemasDir}`);
     return {};
@@ -28,22 +29,22 @@ export function loadSchemas() {
     const fullPath = path.join(schemasDir, file);
 
     try {
-      // Načtení a parsování schématu
-      const schema = JSON.parse(fs.readFileSync(fullPath, "utf8"));
+      const content = fs.readFileSync(fullPath, "utf8");
+      const schema = JSON.parse(content);
 
-      // Získat název akce bez "Request"/"Response" a přípony
-      // Např. "BootNotificationResponse.json" -> "BootNotification"
+      // 2. KLÍČOVÁ OPRAVA: Odstraníme odkaz na starou verzi JSON schématu
+      // Tím zabráníme chybě "no schema with key or ref..."
+      delete schema.$schema; 
+      
+      // Pokus o další čištění ID, které někdy dělá problémy
+      delete schema.id; 
+
       const base = file.replace(".json", "");
       const isResponse = base.endsWith("Response");
+      const action = isResponse ? base.replace("Response", "") : base;
 
-      const action = isResponse
-        ? base.replace("Response", "")
-        : base;
-
-      // Inicializace prázdného objektu pro danou akci, pokud neexistuje
       if (!map[action]) map[action] = {};
 
-      // Kompilace schématu pomocí AJV
       if (isResponse) {
         map[action].res = {
           raw: schema,
@@ -56,12 +57,10 @@ export function loadSchemas() {
         };
       }
     } catch (err) {
-      // Pokud je JSON poškozený, logujeme chybu, ale neshodíme celý server
       logger.error({ err, file }, `❌ Failed to load schema ${file}`);
     }
   }
 
-  // Logování úspěchu
   const count = Object.keys(map).length;
   logger.info(`📜 Loaded schemas for ${count} OCPP actions`);
 
