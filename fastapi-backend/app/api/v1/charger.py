@@ -1,14 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from redis.asyncio import Redis
 
-from app.api.v1.deps import get_db
-from app.models.charger import ChargerCreate, ChargerRead, ChargerUpdate
+from app.api.v1.deps import get_db, get_redis
+from app.models.charger import ChargerCreate, ChargerRead, ChargerUpdate, ChargerAuthorizeRequest, ChargerTechnicalStatus
 from app.services.charger_service import ChargerService
 
 router = APIRouter()
 
-def get_charger_service(db: AsyncSession = Depends(get_db)) -> ChargerService:
-    return ChargerService(session=db)
+def get_charger_service(
+    db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis)
+) -> ChargerService:
+    return ChargerService(session=db, redis=redis)
 
 @router.get("", response_model=list[ChargerRead])
 async def get_chargers(service: ChargerService = Depends(get_charger_service)):
@@ -54,3 +58,38 @@ async def delete_charger(
     if not success:
         raise HTTPException(status_code=404, detail="Charger not found")
     return
+
+@router.post("/authorize/{ocpp_id}")
+async def authorize_charger(
+    ocpp_id: str,
+    auth_request: ChargerAuthorizeRequest,
+    service: ChargerService = Depends(get_charger_service)
+):
+    """
+    Voláno z OCPP serveru při akci 'Authorize'.
+    1. Ověří kartu v DB.
+    2. Uloží autorizaci do Redisu (cache).
+    3. Vrátí status (Accepted/Invalid/Blocked).
+    """
+    # service.authorize_tag vrací dict {status: "..."}
+    id_tag_info = await service.authorize_tag(ocpp_id, auth_request.id_tag)
+    
+    # Zabalíme to do idTagInfo, jak to očekává OCPP logika
+    return {"idTagInfo": id_tag_info}
+
+@router.get("/authorized-tag/{ocpp_id}")
+async def get_authorized_tag(
+    ocpp_id: str,
+    service: ChargerService = Depends(get_charger_service)
+):
+    """
+    Vrátí poslední autorizovanou kartu pro danou nabíječku,
+    pokud ještě nevypršel její časový limit (60s).
+    """
+    tag = await service.get_authorized_tag(ocpp_id)
+    
+    if not tag:
+        # Pokud v Redisu nic není (nikdo nepípl nebo už to vypršelo)
+        raise HTTPException(status_code=404, detail="No authorized tag found (or expired)")
+    
+    return {"id_tag": tag}
