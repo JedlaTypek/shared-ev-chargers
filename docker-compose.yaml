@@ -8,21 +8,18 @@ services:
     depends_on:
       - db
       - redis
-    volumes:
-      - ./fastapi-backend/app:/app/app   # pro vývoj – v produkci zakomentuj
+    restart: unless-stopped
 
   ocpp:
     build: ./ocpp-backend
     container_name: ocpp
     env_file: ./ocpp-backend/.env
-    volumes:
-      - ./ocpp-backend/src:/app/src # pro vývoj – v produkci zakomentuj
-      - ./ocpp-backend/package.json:/app/package.json # pro vývoj – v produkci zakomentuj
     ports:
-      - "9000:9000"   # pokud v index.js startuješ ws na 9000
+      - "9000:9000"
     depends_on:
       - redis
       - api
+    restart: unless-stopped
 
   db:
     image: postgres:16
@@ -30,14 +27,12 @@ services:
     env_file: ./fastapi-backend/.env
     volumes:
       - pgdata:/var/lib/postgresql/data
-    # ports:
-    #   - "5432:5432"   # jen pro vývoj
+    restart: unless-stopped
 
   redis:
     image: redis:7
     container_name: redis
-    # ports:
-    #   - "6379:6379"   # jen pro vývoj
+    restart: unless-stopped
 
 volumes:
   pgdata:

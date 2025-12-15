@@ -1,0 +1,47 @@
+services:
+  api:
+    build:
+      context: ./fastapi-backend
+      dockerfile: Dockerfile.dev
+    container_name: api-dev
+    env_file: ./fastapi-backend/.env
+    ports:
+      - "8000:80"
+    volumes:
+      - ./fastapi-backend/app:/app/app
+    depends_on:
+      - db
+      - redis
+
+  ocpp:
+    build:
+      context: ./ocpp-backend
+      dockerfile: Dockerfile.dev
+    container_name: ocpp-dev
+    env_file: ./ocpp-backend/.env
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./ocpp-backend/src:/app/src
+      - ./ocpp-backend/package.json:/app/package.json
+    depends_on:
+      - redis
+      - api
+
+  db:
+    image: postgres:16
+    container_name: db-dev
+    env_file: ./fastapi-backend/.env
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: redis-dev
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata_dev:

@@ -41,3 +41,19 @@ class ChargeLogRead(ChargeLogBase):
     end_time: Optional[datetime]
 
     model_config = ConfigDict(from_attributes=True)
+
+# Data, která pošle OCPP server při startu
+class TransactionStartRequest(BaseModel):
+    ocpp_id: str
+    connector_id: int
+    id_tag: str
+    meter_start: int
+    timestamp: datetime
+
+# Data, která pošle OCPP server při stopu
+class TransactionStopRequest(BaseModel):
+    transaction_id: int # ID, které jsme vygenerovali při startu
+    meter_stop: int
+    timestamp: datetime
+    id_tag: Optional[str] = None
+    reason: Optional[str] = None

@@ -3,7 +3,7 @@ FROM node:20
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci --omit=dev  # instalace BEZ devDependencies
 
 COPY . .
 

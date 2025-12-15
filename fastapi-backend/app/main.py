@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import config
-from app.api.v1 import user, charger, connector, rfid # Importujeme routery
+from app.api.v1 import user, charger, connector, rfid, transaction # Importujeme routery
 
 app = FastAPI(
     title=config.project_name,
@@ -42,3 +42,6 @@ app.include_router(connector.router, prefix="/api/v1/connectors", tags=["Connect
 
 # 4. RFID Cards
 app.include_router(rfid.router, prefix="/api/v1/rfid-cards", tags=["RFID Cards"])
+
+# 5. Transactions (OCPP Start/Stop)
+app.include_router(transaction.router, prefix="/api/v1/transactions", tags=["Transactions"])
