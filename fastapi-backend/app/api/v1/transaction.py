@@ -10,20 +10,16 @@ def get_transaction_service(db: AsyncSession = Depends(get_db)) -> TransactionSe
     return TransactionService(session=db)
 
 @router.post("/start")
-async def start_transaction_endpoint(
+async def start_transaction(
     data: TransactionStartRequest,
     service: TransactionService = Depends(get_transaction_service)
 ):
-    """Voláno z OCPP při StartTransaction"""
-    transaction_id = await service.start_transaction(data)
-    # Vrátíme transactionId, které nabíječka musí použít pro StopTransaction
-    return {"transactionId": transaction_id}
+    tx_id = await service.start_transaction(data)
+    return {"transactionId": tx_id}
 
 @router.post("/stop")
-async def stop_transaction_endpoint(
+async def stop_transaction(
     data: TransactionStopRequest,
     service: TransactionService = Depends(get_transaction_service)
 ):
-    """Voláno z OCPP při StopTransaction"""
-    result = await service.stop_transaction(data)
-    return result
+    return await service.stop_transaction(data)
