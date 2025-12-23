@@ -2,36 +2,33 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.schema import User
 from app.models.user import UserCreate, UserUpdate
+from app.core.security import get_password_hash
 
 class UserService:
     def __init__(self, session: AsyncSession):
         self._db = session
 
-    # -------- LIST USERS --------
     async def list_users(self) -> list[User]:
         stmt = select(User)
         result = await self._db.execute(stmt)
         return result.scalars().all()
 
-    # -------- GET USER --------
     async def get_user(self, user_id: int) -> User | None:
         stmt = select(User).where(User.id == user_id)
         result = await self._db.execute(stmt)
         return result.scalars().first()
     
-    # -------- GET USER BY EMAIL --------
     async def get_user_by_email(self, email: str) -> User | None:
         stmt = select(User).where(User.email == email)
         result = await self._db.execute(stmt)
         return result.scalars().first()
 
-    # -------- CREATE USER --------
     async def create_user(self, user_data: UserCreate) -> User:
         # Volání async metody s await
         if await self.get_user_by_email(user_data.email):
             raise ValueError("Email already registered")
 
-        hashed_password = user_data.password + "not_really_hashed" 
+        hashed_password = get_password_hash(user_data.password)
         
         user = User(
             name=user_data.name,
