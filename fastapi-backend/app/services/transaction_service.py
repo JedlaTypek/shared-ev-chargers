@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException
 
 from app.db.schema import ChargeLog, Charger, Connector, RFIDCard
-from app.models.charge_log import TransactionStartRequest, TransactionStopRequest
+from app.models.charge_log import TransactionMeterValueRequest, TransactionStartRequest, TransactionStopRequest
 from app.models.enums import ChargeStatus
 
 class TransactionService:
@@ -86,3 +86,57 @@ class TransactionService:
 
         await self._db.commit()
         return {"status": "Accepted"}
+    
+    async def process_meter_value(self, data: TransactionMeterValueRequest):
+        """
+        Aktualizuje běžící transakci o aktuální stav elektroměru.
+        """
+        stmt = select(ChargeLog).where(ChargeLog.id == data.transaction_id)
+        result = await self._db.execute(stmt)
+        log = result.scalars().first()
+
+        # Pokud transakce neexistuje nebo už není 'running', ignorujeme
+        if not log or log.status != ChargeStatus.running:
+            return
+
+        # Aktualizujeme stav
+        # Díky 'onupdate' v databázi se 'last_update' změní samo!
+        log.meter_stop = data.meter_value
+        
+        # Přepočet energie
+        consumed_wh = max(0, log.meter_stop - log.meter_start)
+        log.energy_wh = consumed_wh
+
+        # Volitelně: Průběžný výpočet ceny (pokud máš cenu v logu nebo na konektoru)
+        if hasattr(log, 'price_per_kwh') and log.price_per_kwh:
+             # pozor na převod typů (Decimal vs int)
+             pass 
+
+        await self._db.commit()
+
+    async def close_stale_transactions(self, max_age_minutes: int = 15):
+        """
+        Najde transakce, které jsou 'running', ale o kterých jsme neslyšeli déle než X minut.
+        """
+        limit_time = datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)
+
+        stmt = select(ChargeLog).where(
+            ChargeLog.status == ChargeStatus.running,
+            ChargeLog.last_update < limit_time
+        )
+        result = await self._db.execute(stmt)
+        stale_logs = result.scalars().all()
+
+        count = 0
+        for log in stale_logs:
+            # Ukončíme jako Failed (nebo Completed, záleží na preferenci)
+            log.status = ChargeStatus.failed 
+            log.end_time = log.last_update # Ukončíme časem posledního kontaktu
+            
+            # Cena a energie už jsou tam uložené z posledního process_meter_value
+            count += 1
+        
+        if count > 0:
+            await self._db.commit()
+        
+        return count

@@ -233,6 +233,13 @@ class ChargeLog(Base):
         nullable=False
     )
 
+    last_update: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc), # Automaticky se aktualizuje při každém zápisu
+        nullable=False
+    )
+
     # Relationships
     user: Mapped[Optional["User"]] = relationship(back_populates="charge_logs")
     charger: Mapped[Optional["Charger"]] = relationship(back_populates="charge_logs")

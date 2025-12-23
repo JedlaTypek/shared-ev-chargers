@@ -57,3 +57,7 @@ class TransactionStopRequest(BaseModel):
     timestamp: datetime
     id_tag: Optional[str] = None
     reason: Optional[str] = None
+
+class TransactionMeterValueRequest(BaseModel):
+    transaction_id: int
+    meter_value: int

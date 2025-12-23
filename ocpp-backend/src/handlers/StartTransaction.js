@@ -1,5 +1,6 @@
 import { ocppResponse } from "../utils/ocppResponse.js";
 import { config } from "../utils/config.js";
+import axios from "axios";
 
 export default async function handleStartTransaction({ client, payload }) {
   const { connectorId, idTag, meterStart, timestamp } = payload;
@@ -8,39 +9,28 @@ export default async function handleStartTransaction({ client, payload }) {
   client.log.info({ connectorId, idTag }, "🔌 StartTransaction request");
 
   try {
-    const response = await fetch(`${config.apiUrl}/transactions/start`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ocpp_id: ocppId,
-        connector_id: connectorId,
-        id_tag: idTag,
-        meter_start: meterStart,
-        timestamp: timestamp
-      }),
+    const response = await axios.post(`${config.apiUrl}/transactions/start`, {
+      ocpp_id: ocppId,
+      connector_id: connectorId,
+      id_tag: idTag,
+      meter_start: meterStart,
+      timestamp: timestamp
     });
 
-    if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`);
-    }
+    const { transactionId } = response.data;
 
-    const data = await response.json();
-    const txId = data.transactionId;
+    client.log.info({ txId: transactionId }, "✅ Transaction started");
 
-    client.log.info({ txId }, "✅ Transaction started");
-
-    // Odpověď pro nabíječku: Musí obsahovat transactionId!
     return {
-        transactionId: txId,
+        transactionId: transactionId,
         idTagInfo: { status: "Accepted" }
     };
 
-  } catch (err) {
-    client.log.error({ err }, "💥 Failed to start transaction via API");
-    // Pokud selže API, musíme nabíjení odmítnout, jinak by jelo zadarmo
+  } catch (error) {
+    client.log.error({ err: error.message }, "💥 Failed to start transaction via API");
     return {
         transactionId: 0,
-        idTagInfo: { status: "Invalid" }
+        idTagInfo: { status: "Invalid" } // Zde by šlo vrátit i "ConcurrentTx" apod.
     };
   }
 }

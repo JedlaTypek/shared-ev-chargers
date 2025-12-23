@@ -1,8 +1,8 @@
-"""Final schema
+"""Final - Added last updated to charge logs
 
-Revision ID: 7aceef3152bb
+Revision ID: d24acf2922f5
 Revises: 
-Create Date: 2025-12-23 09:31:16.022478
+Create Date: 2025-12-23 23:01:20.578806
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '7aceef3152bb'
+revision: str = 'd24acf2922f5'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -91,6 +91,7 @@ def upgrade() -> None:
     sa.Column('energy_wh', sa.Integer(), nullable=True),
     sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=True),
     sa.Column('status', sa.Enum('running', 'completed', 'failed', 'cancelled', name='chargestatus'), nullable=False),
+    sa.Column('last_update', sa.DateTime(timezone=True), nullable=False),
     sa.ForeignKeyConstraint(['charger_id'], ['chargers.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['connector_id'], ['connectors.id'], ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['rfid_card_id'], ['rfid_cards.id'], ondelete='SET NULL'),
