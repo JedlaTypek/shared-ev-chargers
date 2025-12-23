@@ -16,6 +16,10 @@ class ChargerTechnicalStatus(BaseModel):
 class ChargerAuthorizeRequest(BaseModel):
     id_tag: str
 
+class ChargerExistenceCheck(BaseModel):
+    id: int
+    is_active: bool
+
 class ChargerBase(BaseModel):
     """
     Základní pole, která může běžný uživatel ovlivnit.

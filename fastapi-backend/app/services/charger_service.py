@@ -192,3 +192,16 @@ class ChargerService:
         redis_key = f"charger:{ocpp_id}:authorized_tag"
         tag = await self._redis.get(redis_key)
         return tag
+    
+    async def check_exists_by_ocpp(self, ocpp_id: str) -> dict | None:
+        """
+        Rychlá kontrola existence pro Handshake.
+        Vrací dict {id: int, status: str} nebo None.
+        """
+        stmt = select(Charger.id, Charger.is_active).where(Charger.ocpp_id == ocpp_id)
+        result = await self._db.execute(stmt)
+        row = result.first()
+        
+        if row:
+            return {"id": row.id, "is_active": row.is_active}
+        return None

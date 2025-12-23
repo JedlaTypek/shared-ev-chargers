@@ -6,7 +6,8 @@ from redis.asyncio import Redis
 from app.api.v1.deps import get_db, get_redis
 # Sloučené modely (TechnicalStatus pro Boot, AuthorizeRequest pro RFID)
 from app.models.charger import (
-    ChargerCreate, 
+    ChargerCreate,
+    ChargerExistenceCheck, 
     ChargerRead, 
     ChargerUpdate, 
     ChargerTechnicalStatus, 
@@ -121,3 +122,22 @@ async def get_authorized_tag(
         raise HTTPException(status_code=404, detail="No authorized tag found (or expired)")
     
     return {"id_tag": tag}
+
+@router.get("/exists/{ocpp_id}", response_model=ChargerExistenceCheck)
+async def check_charger_exists(
+    ocpp_id: str, 
+    service: ChargerService = Depends(get_charger_service)
+):
+    """
+    Rychlé ověření pro handshake OCPP serveru.
+    """
+    charger = await service.check_exists_by_ocpp(ocpp_id)
+    if not charger:
+        raise HTTPException(status_code=404, detail="Charger not found")
+    
+    # Zde přistupujeme k datům přes klíč slovníku, protože service vrací dict.
+    # Pydantic to pak automaticky převede na instanci ChargerExistenceCheck.
+    if not charger["is_active"]:
+        raise HTTPException(status_code=403, detail="Charger is disabled")
+
+    return charger
