@@ -13,11 +13,12 @@ ENV PATH="/root/.local/bin:${PATH}"
 WORKDIR /app
 COPY . .
 
-# vývojová instalace – žádné --frozen
-RUN uv sync
+# PROD: --frozen zajistí, že se nainstalují přesně verze z uv.lock
+RUN uv sync --frozen
 
 ENV PATH="/app/.venv/bin:${PATH}"
 
 EXPOSE 80
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]
+# ZDE JE ZMĚNA: Migrace + Start bez reloadu
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 80"]

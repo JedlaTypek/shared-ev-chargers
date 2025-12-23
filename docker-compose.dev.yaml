@@ -9,6 +9,7 @@ services:
       - "8000:80"
     volumes:
       - ./fastapi-backend/app:/app/app
+      # - ./fastapi-backend/alembic:/app/alembic
     depends_on:
       - db
       - redis

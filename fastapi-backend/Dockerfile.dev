@@ -13,10 +13,11 @@ ENV PATH="/root/.local/bin:${PATH}"
 WORKDIR /app
 COPY . .
 
+# vývojová instalace – žádné --frozen
 RUN uv sync
 
 ENV PATH="/app/.venv/bin:${PATH}"
 
 EXPOSE 80
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]
