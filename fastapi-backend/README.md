@@ -27,3 +27,7 @@
 
 ## Zdroje
 - https://www.youtube.com/watch?v=Af6Zr0tNNdE&list=LL
+
+# TODO
+- automatické generování ocpp_id při vytváření nabíječky
+- v get charger nefunguje status u konektorů

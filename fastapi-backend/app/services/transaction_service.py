@@ -5,7 +5,7 @@ from sqlalchemy import select
 from fastapi import HTTPException
 
 from app.db.schema import ChargeLog, Charger, Connector, RFIDCard
-from app.models.charge_log import TransactionStartRequest, TransactionStopRequest # Pozor na podtržítko v importu!
+from app.models.charge_log import TransactionStartRequest, TransactionStopRequest
 from app.models.enums import ChargeStatus
 
 class TransactionService:
@@ -39,25 +39,24 @@ class TransactionService:
         rfid_id = rfid_card.id if rfid_card else None
 
         # 4. Vytvořit záznam
+        # Pozor: Nepředáváme transaction_id, protože v DB tabulce tento sloupec není.
+        # Jako TransactionID pro OCPP použijeme primární klíč (id) tohoto řádku.
         new_log = ChargeLog(
-            transaction_id=0, # Dočasné, ID získáme po flush
             charger_id=charger.id,
             connector_id=connector.id,
             user_id=user_id,
             rfid_card_id=rfid_id,
             start_time=data.timestamp,
             meter_start=data.meter_start,
-            status=ChargeStatus.RUNNING, # Používáme Enum
+            status=ChargeStatus.running, # Opraveno na malé písmena podle Enumu
             price_per_kwh=connector.price_per_kwh if connector.price_per_kwh else 0
         )
         
         self._db.add(new_log)
-        await self._db.flush() 
-        
-        # Nastavíme transaction_id na ID řádku (nebo generujeme vlastní sekvenci)
-        new_log.transaction_id = new_log.id 
+        await self._db.flush() # Tímto se vygeneruje new_log.id
         await self._db.commit()
 
+        # Vracíme ID řádku jako TransactionID
         return new_log.id
 
     async def stop_transaction(self, data: TransactionStopRequest):
@@ -68,6 +67,7 @@ class TransactionService:
 
         if not log:
             # Pokud transakce neexistuje, vrátíme úspěch, aby se nabíječka nezasekla
+            # (Může se stát, pokud server spadl a ztratil data z paměti, ale v DB by to být mělo)
             return {"status": "Ignored"}
 
         # 2. Výpočty
@@ -82,7 +82,7 @@ class TransactionService:
         log.end_time = data.timestamp
         log.energy_wh = consumed_wh
         log.price = round(price, 2)
-        log.status = ChargeStatus.COMPLETED
+        log.status = ChargeStatus.completed # Opraveno na malé písmena podle Enumu
 
         await self._db.commit()
         return {"status": "Accepted"}

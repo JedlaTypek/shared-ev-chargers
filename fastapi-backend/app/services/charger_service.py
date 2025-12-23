@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, attributes
 from sqlalchemy import select
 from redis.asyncio import Redis
 
@@ -27,14 +27,38 @@ class ChargerService:
         result = await self._db.execute(stmt)
         return result.scalars().first()
 
-    async def create_charger(self, data: ChargerCreate) -> Charger:
-        if data.ocpp_id:
-            stmt = select(Charger).where(Charger.ocpp_id == data.ocpp_id)
-            existing_result = await self._db.execute(stmt)
-            existing = existing_result.scalars().first()
-            if existing:
-                raise ValueError(f"Charger with OCPP ID '{data.ocpp_id}' already exists")
+    # --- Pomocná metoda pro generování ID ---
+    async def _generate_ocpp_id(self, prefix: str = "CZ-ECLD") -> str:
+        """
+        Generuje unikátní ID ve formátu CZ-ECLD-000001 (6 cifer).
+        """
+        stmt = (
+            select(Charger.ocpp_id)
+            .where(Charger.ocpp_id.like(f"{prefix}-%"))
+            .order_by(Charger.ocpp_id.desc())
+            .limit(1)
+        )
+        
+        result = await self._db.execute(stmt)
+        last_id = result.scalars().first()
 
+        new_number = 1
+        if last_id:
+            try:
+                # CZ-ECLD-000001 -> vezmeme část za poslední pomlčkou
+                number_part = last_id.split('-')[-1]
+                new_number = int(number_part) + 1
+            except ValueError:
+                new_number = 1
+
+        # zfill(6) zajistí 6 míst: 000001
+        return f"{prefix}-{str(new_number).zfill(6)}"
+
+    async def create_charger(self, data: ChargerCreate) -> Charger:
+        # 1. Vygenerujeme nové ID (už nebereme nic z data.ocpp_id)
+        new_ocpp_id = await self._generate_ocpp_id()
+
+        # 2. Vytvoříme instanci
         charger = Charger(
             owner_id=data.owner_id,
             name=data.name,
@@ -45,13 +69,17 @@ class ChargerService:
             city=data.city,
             postal_code=data.postal_code,
             region=data.region,
-            ocpp_id=data.ocpp_id,
+            ocpp_id=new_ocpp_id, # Použijeme vygenerované ID
             is_active=data.is_active
         )
-        
+
         self._db.add(charger)
         await self._db.commit()
         await self._db.refresh(charger)
+        
+        # Nastavení prázdných konektorů (fix pro MissingGreenlet)
+        attributes.set_committed_value(charger, "connectors", [])
+        
         return charger
 
     async def update_charger(self, charger_id: int, data: ChargerUpdate) -> Charger | None:

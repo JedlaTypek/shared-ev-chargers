@@ -212,13 +212,19 @@ class ChargeLog(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
+    
+    # --- PŘIDAT TOTO (chybějící sloupec pro počáteční stav elektroměru) ---
+    meter_start: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # ----------------------------------------------------------------------
 
     end_time: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    # ZMĚNA: Float (kWh) -> Integer (Wh). Ukládáme watthodiny pro maximální přesnost.
+    # --- PŘIDAT TOTO (chybějící sloupec pro konečný stav elektroměru) ---
+    meter_stop: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # -------------------------------------------------------------------
+
     energy_wh: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     
-    # ZMĚNA: Float -> Numeric(10, 2)
     price: Mapped[Optional[Decimal]] = mapped_column(Numeric(10, 2), nullable=True)
 
     status: Mapped[ChargeStatus] = mapped_column(
