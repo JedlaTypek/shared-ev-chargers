@@ -12,6 +12,20 @@ class TransactionService:
     def __init__(self, session: AsyncSession):
         self._db = session
 
+    async def get_transactions(self, user_id: int | None = None, skip: int = 0, limit: int = 100):
+        stmt = select(ChargeLog).order_by(ChargeLog.start_time.desc()).offset(skip).limit(limit)
+        
+        if user_id:
+            stmt = stmt.where(ChargeLog.user_id == user_id)
+            
+        result = await self._db.execute(stmt)
+        return result.scalars().all()
+
+    async def get_transaction(self, transaction_id: int):
+        stmt = select(ChargeLog).where(ChargeLog.id == transaction_id)
+        result = await self._db.execute(stmt)
+        return result.scalars().first()
+
     async def start_transaction(self, data: TransactionStartRequest) -> int:
         # 1. Najít nabíječku podle OCPP ID
         stmt = select(Charger).where(Charger.ocpp_id == data.ocpp_id)

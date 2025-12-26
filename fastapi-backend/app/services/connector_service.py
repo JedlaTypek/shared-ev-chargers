@@ -1,9 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from redis.asyncio import Redis # Async redis
+from sqlalchemy.orm import selectinload
+from redis.asyncio import Redis
 
 from app.db.schema import Connector, Charger
-from app.models.connector import ConnectorCreate, ConnectorStatusUpdate, ConnectorRead, ConnectorUpdate
+from app.models.connector import ConnectorStatusUpdate, ConnectorRead, ConnectorUpdate
 
 class ConnectorService:
     def __init__(self, session: AsyncSession, redis: Redis):
@@ -13,12 +14,13 @@ class ConnectorService:
     def _get_redis_key(self, ocpp_id: str, connector_num: int) -> str:
         return f"charger:{ocpp_id}:connector:{connector_num}:status"
 
+    # --- POUŽÍVÁ INTERNAL API (OCPP) ---
     async def process_status_notification(self, data: ConnectorStatusUpdate) -> Connector | None:
-        # 1. Redis - await
+        # 1. Uložíme status do Redisu (Expirace 24h)
         redis_key = self._get_redis_key(data.ocpp_id, data.connector_number)
         await self._redis.set(redis_key, data.status, ex=86400)
 
-        # 2. DB - await
+        # 2. Najdeme nabíječku
         stmt_charger = select(Charger).where(Charger.ocpp_id == data.ocpp_id)
         result_charger = await self._db.execute(stmt_charger)
         charger = result_charger.scalars().first()
@@ -26,6 +28,7 @@ class ConnectorService:
         if not charger:
             return None
 
+        # 3. Najdeme nebo vytvoříme konektor (Auto-discovery)
         stmt_connector = select(Connector).where(
             Connector.charger_id == charger.id,
             Connector.ocpp_number == data.connector_number
@@ -34,51 +37,55 @@ class ConnectorService:
         connector = result_connector.scalars().first()
 
         if not connector:
-            print(f"✨ Auto-discovering new connector #{data.connector_number}")
+            print(f"✨ Auto-discovering new connector #{data.connector_number} for {data.ocpp_id}")
             connector = Connector(
                 charger_id=charger.id,
                 ocpp_number=data.connector_number,
-                is_active=False
+                is_active=False # Nový konektor musí majitel nejdřív nastavit a aktivovat
             )
             self._db.add(connector)
-            await self._db.commit() # await commit
-            await self._db.refresh(connector) # await refresh
+            await self._db.commit()
+            await self._db.refresh(connector)
         
         return connector
 
-    async def get_connector_with_status(self, connector_id: int) -> ConnectorRead | None:
-        # Join v async vyžaduje explicitní načtení nebo join v dotazu
-        stmt = select(Connector, Charger.ocpp_id).join(Charger).where(Connector.id == connector_id)
+    # --- POMOCNÁ METODA PRO FETCH DB OBJEKTU ---
+    async def get_connector(self, connector_id: int) -> Connector | None:
+        """Vrání ORM objekt včetně načtené relace Charger (pro kontrolu majitele)."""
+        stmt = (
+            select(Connector)
+            .options(selectinload(Connector.charger)) # Důležité pro charger.owner_id
+            .where(Connector.id == connector_id)
+        )
         result = await self._db.execute(stmt)
-        row = result.first()
+        return result.scalars().first()
+
+    # --- POUŽÍVÁ USER API ---
+    async def get_connector_with_status(self, connector_id: int) -> ConnectorRead | None:
+        # Získáme konektor i s nabíječkou
+        connector = await self.get_connector(connector_id)
         
-        if not row:
+        if not connector:
             return None
             
-        connector, ocpp_id = row
-        
-        redis_key = self._get_redis_key(ocpp_id, connector.ocpp_number)
+        # Dotaz do Redisu pro aktuální status
+        redis_key = self._get_redis_key(connector.charger.ocpp_id, connector.ocpp_number)
         status = await self._redis.get(redis_key)
         
+        # Převedeme na Pydantic a doplníme status
         response_model = ConnectorRead.model_validate(connector)
         response_model.status = status if status else "Unknown"
         return response_model
     
     async def update_connector(self, connector_id: int, data: ConnectorUpdate) -> Connector | None:
-        # 1. Najdeme konektor (nepotřebujeme joinovat status z Redisu pro update)
-        stmt = select(Connector).where(Connector.id == connector_id)
-        result = await self._db.execute(stmt)
-        connector = result.scalars().first()
-
+        connector = await self.get_connector(connector_id)
         if not connector:
             return None
 
-        # 2. Aplikujeme změny
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
             setattr(connector, key, value)
 
-        # 3. Uložíme
         await self._db.commit()
         await self._db.refresh(connector)
         return connector

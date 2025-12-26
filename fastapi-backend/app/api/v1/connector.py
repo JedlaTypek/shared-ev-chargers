@@ -1,36 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 
-from app.api.v1.deps import get_db, get_redis
-from app.models.connector import ConnectorStatusUpdate, ConnectorRead, ConnectorUpdate
+from app.api.v1.deps import get_db, get_redis, get_current_user
+from app.models.connector import ConnectorRead, ConnectorUpdate
 from app.services.connector_service import ConnectorService
+from app.db.schema import User
+from app.models.enums import UserRole
+from app.api.v1.deps import get_connector_service
 
 router = APIRouter()
 
-def get_connector_service(
-    db: AsyncSession = Depends(get_db),
-    redis: Redis = Depends(get_redis)
-) -> ConnectorService:
-    return ConnectorService(session=db, redis=redis)
-
-@router.post("/ocpp-status", status_code=status.HTTP_200_OK)
-async def update_ocpp_status( # ZMĚNA: async def
-    status_data: ConnectorStatusUpdate,
-    service: ConnectorService = Depends(get_connector_service)
-):
-    # ZMĚNA: await
-    result = await service.process_status_notification(status_data)
-    if not result:
-        return {"status": "ignored", "reason": "Charger not found"}
-    return {"status": "updated", "connector_id": result.id}
-
 @router.get("/{connector_id}", response_model=ConnectorRead)
-async def get_connector( # ZMĚNA: async def
+async def get_connector(
     connector_id: int,
     service: ConnectorService = Depends(get_connector_service)
 ):
-    # ZMĚNA: await
+    # Tento endpoint může být veřejný (pro detail nabíječky na mapě),
+    # nebo chráněný. Zatím necháváme veřejný.
     connector = await service.get_connector_with_status(connector_id)
     if not connector:
         raise HTTPException(status_code=404, detail="Connector not found")
@@ -40,17 +27,28 @@ async def get_connector( # ZMĚNA: async def
 async def update_connector(
     connector_id: int,
     connector_update: ConnectorUpdate,
-    service: ConnectorService = Depends(get_connector_service)
+    service: ConnectorService = Depends(get_connector_service),
+    current_user: User = Depends(get_current_user) # Vyžaduje přihlášení
 ):
     """
     Klíčový endpoint pro majitele:
-    Zde doplní cenu, výkon a typ konektoru poté, co ho systém automaticky detekoval.
-    Nakonec nastaví is_active=True.
+    Doplní cenu/výkon a aktivuje konektor.
     """
-    updated = await service.update_connector(connector_id, connector_update)
-    if not updated:
+    # 1. Načteme konektor (abychom zjistili majitele nabíječky)
+    connector_orm = await service.get_connector(connector_id)
+    if not connector_orm:
         raise HTTPException(status_code=404, detail="Connector not found")
+
+    # 2. Kontrola oprávnění (Vlastník nabíječky nebo Admin)
+    # Díky selectinload v service můžeme přistoupit k .charger.owner_id
+    is_owner = connector_orm.charger.owner_id == current_user.id
+    is_admin = current_user.role == UserRole.admin
+
+    if not is_owner and not is_admin:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    # 3. Update
+    updated = await service.update_connector(connector_id, connector_update)
     
-    # Pro vrácení response musíme načíst i status z Redisu (aby model seděl)
-    # Můžeme zavolat tvou existující metodu:
+    # 4. Vrácení výsledku i se statusem z Redisu
     return await service.get_connector_with_status(connector_id)

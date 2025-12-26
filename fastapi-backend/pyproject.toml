@@ -21,7 +21,9 @@ dependencies = [
     # ZMĚNA: psycopg2 nahradíme/doplníme o asyncpg
     "asyncpg>=0.29.0", 
     "psycopg2-binary>=2.9", # Může zůstat pro synchronní skripty, ale runtime pojede na asyncpg
-    "redis>=5.2.0"
+    "redis>=5.2.0",
+    "python-jose[cryptography]",
+    "python-multipart"
 ]
 
 [tool.pytest.ini_options]

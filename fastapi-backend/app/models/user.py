@@ -26,7 +26,8 @@ class UserRead(BaseModel):
     
     # Změna na Decimal
     balance: Decimal
-    
+
+    is_active: bool    
     created_at: datetime
 
     # Moderní konfigurace pro Pydantic V2 (nahrazuje class Config)
@@ -38,6 +39,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     password: Optional[str] = None
     role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
     
     # Změna na Decimal
     balance: Optional[Decimal] = None

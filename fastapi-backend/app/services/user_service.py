@@ -8,8 +8,13 @@ class UserService:
     def __init__(self, session: AsyncSession):
         self._db = session
 
-    async def list_users(self) -> list[User]:
+    async def list_users(self, show_all: bool = False) -> list[User]:
         stmt = select(User)
+        
+        # Pokud nechceme vidět všechny (i smazané), vyfiltrujeme jen aktivní
+        if not show_all:
+            stmt = stmt.where(User.is_active == True) # noqa: E712
+            
         result = await self._db.execute(stmt)
         return result.scalars().all()
 
@@ -24,7 +29,6 @@ class UserService:
         return result.scalars().first()
 
     async def create_user(self, user_data: UserCreate) -> User:
-        # Volání async metody s await
         if await self.get_user_by_email(user_data.email):
             raise ValueError("Email already registered")
 
@@ -38,10 +42,7 @@ class UserService:
             balance=user_data.balance,
         )
         
-        # .add() je synchronní operace (jen přidává do session state)
         self._db.add(user)
-        
-        # IO operace jsou async
         await self._db.commit()
         await self._db.refresh(user)
         return user
@@ -52,11 +53,14 @@ class UserService:
         if not user:
             return None
 
+        # Pydantic metoda .model_dump(exclude_unset=True) vrátí jen to, co uživatel poslal
         update_fields = user_data.model_dump(exclude_unset=True)
         
         for field, value in update_fields.items():
+            # OPRAVA: Pokud se mění heslo, musíme ho zahashovat!
             if field == "password" and value:
-                value = value + "not_really_hashed"
+                value = get_password_hash(value)
+                
             setattr(user, field, value)
 
         await self._db.commit()
@@ -69,7 +73,6 @@ class UserService:
         if not user:
             return False
         
-        # .delete() je synchronní
-        await self._db.delete(user)
+        user.is_active = False  # Soft delete
         await self._db.commit()
         return True

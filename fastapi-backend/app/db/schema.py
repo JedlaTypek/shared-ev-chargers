@@ -1,7 +1,8 @@
 from typing import Optional, List
 from datetime import datetime, timezone
-import enum
 from decimal import Decimal
+
+from app.models.enums import UserRole, CurrentType, ConnectorType, ChargeStatus
 
 # ZMĚNA: Importy pro async SQLAlchemy
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -30,12 +31,6 @@ class Base(DeclarativeBase):
 # User
 ########################
 
-class UserRole(enum.Enum):
-    user = "user"
-    owner = "owner"
-    admin = "admin"
-
-
 class User(Base):
     __tablename__ = "users"
 
@@ -57,6 +52,8 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
+
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # relationships
     chargers: Mapped[List["Charger"]] = relationship(back_populates="owner")
@@ -95,18 +92,6 @@ class RFIDCard(Base):
 ########################
 # Connectors
 ########################
-
-class CurrentType(enum.Enum):
-    AC = "AC"
-    DC = "DC"
-
-
-class ConnectorType(enum.Enum):
-    Type1 = "Type1"
-    Type2 = "Type2"
-    CCS = "CCS"
-    CHAdeMO = "CHAdeMO"
-    Tesla = "Tesla"
 
 
 class Connector(Base):
@@ -174,13 +159,6 @@ class Charger(Base):
 ########################
 # Charge logs
 ########################
-
-class ChargeStatus(enum.Enum):
-    running = "running"
-    completed = "completed"
-    failed = "failed"
-    cancelled = "cancelled"
-
 
 class ChargeLog(Base):
     __tablename__ = "charge_logs"

@@ -357,30 +357,40 @@ openright
 
 %% Abstrakt v češtině
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\noindent{\Large{\bfseries{Abstrakt}\\}}
-	\noindent Tato práce se zabývá návrhem a realizací systému pro sdílení domácích nabíječek elektromobilů, který uživatelům umožňuje zpřístupnit svou nabíječku ostatním podobně jako model Airbnb. V Česku sice není infrastruktura nabíjecích stanic kriticky nedostatečná, ale komunitní projekt tohoto typu může zvýšit jejich dostupnost, zlevnit nabíjení a urychlit návratnost domácích fotovoltaických elektráren. Existuje komunita uživatelů, kteří si nabíječky půjčují neformálně, avšak doposud se domlouvají složitě přes chatovací platformy. Cílem projektu je vytvořit funkční prototyp platformy, která dokáže komunikovat s domácími nabíječkami přes protokol OCPP 1.6, zpracovat RFID autorizaci a umožnit automatické účtování plateb za nabíjení. Implementace zahrnuje databázový model v PostgreSQL, autentizaci pomocí JWT a základní bezpečnostní prvky. Řešení je založeno na dvou backendových službách – OCPP serveru v Node.js a API serveru ve FastAPI. Součástí práce je také webová aplikace s mapovým zobrazením nabíječek. Registrovaní uživatelé mohou spravovat vlastní nabíječky, prohlížet historii nabíjení a spravovat svůj účet. Výsledkem je funkční prototyp systému umožňující registraci uživatelů i nabíječek, zpracování RFID přístupů, výpočet cen nabíjení a zobrazení nabíjecích míst na mapě. Projekt zároveň vytváří prostor pro budoucí rozšíření o rezervace, platební brány a podporu nabíječek bez nativní podpory OCPP.\\
-	
-	\vspace{18pt}
-	
-	\noindent{\large{\bfseries{Klíčová slova}}}
-	
-	\noindent OCPP 1.6, nabíjecí stanice, elektromobilita, sdílení nabíječek, RFID autorizace, FastAPI, Node.js, WebSocket server, PostgreSQL, SvelteKit, mobilní aplikace, mapová vizualizace, \dots 
-	
-	\cleardoublepage %% Zalomení dvojstránky
+\noindent{\Large{\bfseries{Abstrakt}\\}}
+
+\noindent Tato práce se zabývá návrhem a realizací systému pro sdílení domácích nabíječek elektromobilů, který uživatelům umožňuje zpřístupnit svou nabíječku ostatním podobně jako model Airbnb. V Česku sice není infrastruktura nabíjecích stanic kriticky nedostatečná, ale komunitní projekt tohoto typu může zvýšit jejich dostupnost, zlevnit nabíjení a urychlit návratnost domácích fotovoltaických elektráren. Existuje komunita uživatelů, kteří si nabíječky půjčují neformálně, avšak doposud se domlouvají složitě přes chatovací platformy.
+
+Cílem projektu je vytvořit funkční prototyp platformy, která dokáže komunikovat s domácími nabíječkami přes protokol OCPP 1.6, zpracovat RFID autorizaci a umožnit automatické účtování plateb za nabíjení. Implementace zahrnuje databázový model v PostgreSQL a robustní API rozhraní pro správu nabíjecích stanic. Řešení je založeno na dvou backendových službách – OCPP serveru v Node.js a API serveru ve FastAPI. Systém je navržen jako backendové řešení (API-first), které připravuje veškerá data pro klientské aplikace.
+
+Výsledkem je funkční prototyp systému umožňující registraci uživatelů i nabíječek, zpracování RFID přístupů a výpočet cen nabíjení. Projekt zároveň vytváří prostor pro budoucí rozšíření o klientskou webovou aplikaci, rezervace a platební brány.
+
+\vspace{18pt}
+
+\noindent{\large{\bfseries{Klíčová slova}}}
+
+\noindent OCPP 1.6J, nabíjecí stanice, elektromobilita, sdílení nabíječek, RFID autorizace, FastAPI, Node.js, WebSocket server, PostgreSQL.
+
+\cleardoublepage %% Zalomení dvojstránky
+
 
 %% Abstrakt v angličtině
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
-	\noindent{\Large{\bfseries{Abstract}}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\noindent{\Large{\bfseries{Abstract}}}
+
+\noindent This thesis focuses on the design and implementation of a system for sharing home electric vehicle chargers, allowing users to make their chargers available to others in a manner similar to the Airbnb model. Although the charging infrastructure in the Czech Republic is not critically insufficient, a community-driven project of this type can increase charger availability, reduce charging costs, and accelerate the return on investment for home photovoltaic systems. A community of users who share chargers already exists, but they currently rely on informal and inefficient coordination through chat platforms.
+
+The goal of the project is to create a functioning prototype of a platform capable of communicating with home chargers via the OCPP 1.6 protocol, processing RFID authorization, and automatically calculating charging payments. The implementation includes a PostgreSQL database model and a robust API interface for charging station management. The solution is built on two backend services — an OCPP server developed in Node.js and an API server using FastAPI. The system is designed as a backend-first solution, providing data for future client applications.
+
+The result is a functional prototype enabling user and charger registration, RFID processing, and charging price calculation. The project additionally lays the groundwork for future extensions, including a client web application, reservations, and payment gateways.
+
+\vspace{18pt}
+
+\noindent{\large{\bfseries{Keywords}}}
+
+\noindent OCPP 1.6J, charging station, electromobility, charger sharing, RFID authorization, FastAPI, Node.js, WebSocket server, PostgreSQL.
 	
-	\noindent This thesis focuses on the design and implementation of a system for sharing home electric vehicle chargers, allowing users to make their chargers available to others in a manner similar to the Airbnb model. Although the charging infrastructure in the Czech Republic is not critically insufficient, a community-driven project of this type can increase charger availability, reduce charging costs, and accelerate the return on investment for home photovoltaic systems. A community of users who share chargers already exists, but they currently rely on informal and inefficient coordination through chat platforms. The goal of the project is to create a functioning prototype of a platform capable of communicating with home chargers via the OCPP 1.6 protocol, processing RFID authorization, and automatically calculating charging payments. The implementation includes a PostgreSQL database model, JWT-based authentication, and essential security features. The solution is built on two backend services — an OCPP server developed in Node.js and an API server using FastAPI. The work also includes a web application featuring a map-based display of available chargers. Registered users can manage their chargers, view charging history, and maintain their user accounts. The result is a functional prototype enabling user and charger registration, RFID processing, charging price calculation, and map-based visualization of charging locations. The project additionally lays the groundwork for future extensions, including reservations, payment gateways, and support for chargers without native OCPP compatibility. %% přepiš!!
-	
-	\vspace{18pt}
-	
-	\noindent{\large{\bfseries{Keywords}}}
-	
-	\noindent OCPP 1.6, charging station, electromobility, charger sharing, RFID authorization, FastAPI, Node.js, WebSocket server, PostgreSQL, SvelteKit, mobile application, map visualization, \dots 
-	
-	\clearpage %% Zalomení stránky
+\cleardoublepage %% Zalomení stránky
 
 %% Stránka s generovaným obsahem
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
@@ -401,11 +411,13 @@ openright
 %První parametr toc označuje, že přidáváme záznam do Table of Contents (obsahu).
 %Druhý parametr chapter specifikuje úroveň záznamu. V tomto případě říkáme, že přidávaný záznam má být považován za kapitolu.
 %Třetí parametr Úvod je text, který se objeví v obsahu. V tomto případě bude v obsahu zobrazen název "Úvod".	
-Závěrečné studijní práce a jejich veřejné obhajoby jsou důležitou součástí vyvrcholení studia oboru informační technologie na \textit{Střední škole průmyslové a umělecké v Opavě}. Hlavním cílem je samostatně vypracovat komplexní, nejčastěji prakticky zaměřený projekt na vybrané téma z~oblasti ICT a napsat k tomuto projektu také příslušnou odbornou dokumentaci podle obecně platných pravidel. Nejúspěšnější studentské projekty bývají vybrány, aby školu reprezentovaly v soutěžních přehlídkách \emph{Středoškolské odborné činnosti} (dále SOČ), kde je pečlivá a přesná dokumentace rovněž vyžadována.
+V posledních letech zaznamenává Česká republika, i díky dotačním titulům Evropské unie, výrazný nárůst počtu domácích fotovoltaických elektráren. Tento trend, společně s rostoucí dostupností elektromobilů a tlakem na snižování provozních nákladů, vedl k masivnímu rozšíření privátní nabíjecí infrastruktury. Tyto domácí nabíjecí body (wallboxy) však zůstávají po většinu času nevyužité, jelikož slouží primárně pouze pro potřeby majitele nemovitosti.
 
-Tento dokument vznikl se záměrem co nejvíce studentům usnadnit formální úpravu dokumentace k jejich odborné práci a poskytnout jim i dobré vodítko při strukturování samotného obsahu. Vzhledem k tomu, že příprava na vysokoškolské studium často vyžaduje znalost {\LaTeX}u, představujeme šablonu vytvořenou v této technologii, jejímž autorem je z velké části Jakub Dokulil a která byla původně určená pro soutěžící SOČ.  
+Sdílení těchto soukromých nabíječek by přineslo benefity všem stranám: majitelům by zkrátilo návratnost investice do fotovoltaiky a wallboxu, a zároveň by došlo k efektivnímu zahuštění sítě nabíjecích stanic, která je v tuzemsku stále nedostatečná.
 
-První kapitola této práce obsahuje základní informace o~{\LaTeX}u; stručně se zmiňuje o jeho vývoji, ale hlavně se soustředí na základní principy, které je nezbytné znát při sestavování rozsáhlejších  textových dokumentů. Součástí této kapitoly je i výběr některých programových prostředků, které mohou výrazněji urychlit a usnadnit psaní zdrojového kódu {\LaTeX}u. V kapitole nazvané "Jak psát odbornou dokumentaci" jsou zdůrazněna nejdůležitější pravidla, jež by měla být dodržena při psaní (nejen) odborného textu, a to jak zásady týkající se obsahu, tak i formální stránky - pravopisné, typografické apod. Závěrečná kapitola se soustředí na praktické ukázky správného použití různých typů obsahu v odborné práci. 
+V současnosti je trh se sdílením privátních nabíječek roztříštěný. Existují neformální komunity na sociálních sítích, kde je domluva zdlouhavá a manuální, nebo komerční projekty (např. evmapa.cz či goplugable.com), které jsou však často administrativně náročné, vyžadují specifický hardware nebo cílí primárně na firemní klientelu.
+
+Cílem této práce je navrhnout a implementovat otevřený systém, který propojí existující domácí nabíječky a zajistí jejich automatizovanou správu. Systém bude zajišťovat komunikaci se stanicí, autorizaci uživatelů pomocí RFID karet, řízení nabíjecího procesu a následné vyúčtování spotřebované energie. Důraz je kladen na to, aby řešení nevyžadovalo od majitelů nákup proprietárního hardware, ale využívalo standardizovaný protokol.
 
 %Tipy k psaní úvodu
 %Je povinný, nadpis neměňte, rozsah - max. 1 strana. 
@@ -415,235 +427,33 @@ První kapitola této práce obsahuje základní informace o~{\LaTeX}u; stručn�
 %* motivaci pro další čtení textu včetně stručného uvedení obsahu následujících kapitol 
 
 
-\chapter{Protokol OCPP}
+\chapter{Výběr postupů a technologií}
+\label{chap:technologie}
 
-\section{Úvod}
-\label{sec:uvod}
+Při návrhu architektury systému byl kladen důraz na modularitu, škálovatelnost a použití moderních, ale ověřených technologií. Systém je navržen jako sada mikroslužeb běžících v kontejnerizovaném prostředí Docker.
 
-V této kapitole se seznámíme s \LaTeX{}, což je vysoko kvalitní typografický systém, speciálně navržený pro produkci technické a vědecké dokumentace. \LaTeX{} je široce používán akademiky, vědci, inženýry a dalšími profesionály, kteří potřebují efektivně vytvářet vysoce kvalitní dokumenty, jako jsou články, reporty, knihy a dokonce i prezentace.
+\section{OCPP protokol}
+Jako klíčový prvek komunikace mezi serverem a hardwarem nabíjecí stanice byl zvolen protokol \textbf{OCPP (Open Charge Point Protocol)} ve verzi \textbf{1.6 JSON (OCPP-J)}. 
+Ačkoliv již existují novější specifikace (2.0.1, 2.1), verze 1.6 je v současnosti průmyslovým standardem s nejširší podporou výrobců domácích wallboxů. Použití formátu JSON namísto staršího SOAP (XML) výrazně zjednodušuje parsování zpráv a snižuje datovou náročnost, což je klíčové při komunikaci přes mobilní sítě. Pokud by měl projekt v budoucnu pokračovat, je architektura připravena na implementaci novějších verzí pro zajištění maximální kompatibility.
 
-\subsection{Co je OCPP protokol}
-\LaTeX{} je založen na programu \TeX{}, který byl původně vytvořen Donaldem E. Knuthem v pozdních 70. letech. Na rozdíl od běžných textových procesorů, které jsou "What You See Is What You Get" (WYSIWYG), \LaTeX{} funguje na principu "What You See Is What You Mean" (WYSIWYM). To znamená, že se uživatelé soustředí na strukturu a obsah svého textu, zatímco vzhled dokumentu je řízen předdefinovanými šablonami.
+\section{OCPP Backend}
+Pro službu zajišťující přímou komunikaci s nabíječkami (CSMS - Charging Station Management System) bylo zvoleno prostředí \textbf{Node.js}. 
+Hlavním důvodem je jeho asynchronní architektura řízená událostmi (event-driven), která je ideální pro zpracování velkého množství WebSocket spojení v reálném čase. Node.js efektivně funguje jako router, který přijímá zprávy od nabíječek, validuje je a předává relevantní data do API backendu.
 
-\subsection{Výhody používání \LaTeX{}}
-Hlavní výhodou používání \LaTeX{} je jeho schopnost vytvářet profesionálně vypadající dokumenty s konzistentním formátováním. Dále nabízí:
+\section{API Backend}
+Druhou částí systému je API backend, pro který byl zvolen jazyk \textbf{Python} s frameworkem \textbf{FastAPI}. 
+Tato služba tvoří ,,mozek'' celého systému. Umožňuje OCPP backendu (a v budoucnu i dalším klientům, jako jsou webové či mobilní aplikace) komunikovat s databází a nabízí sadu nástrojů pro správu uživatelů a nabíječek. FastAPI bylo zvoleno pro svou rychlost, automatickou generaci dokumentace (Swagger UI) a striktní typovou kontrolu dat.
 
-\begin{itemize}
-	\item Vynikající kvalitu sazby, zvláště pro matematické vzorce.
-	\item Automatizované generování obsahu, seznamů obrázků, tabulek a bibliografických odkazů.
-	\item Možnost snadno pracovat s komplexními dokumenty jako jsou disertace nebo knihy.
-	\item Rozsáhlé možnosti přizpůsobení a širokou škálu balíčků rozšiřujících jeho funkčnost.
+\section{Databázové systémy}
+Architektura využívá kombinaci dvou databázových systémů pro různé typy dat:
+\begin{itemize}databáze
+	\item \textbf{PostgreSQL:} Slouží jako primární perzistentní úložiště pro trvalá data (uživatelé, transakce, definice nabíječek).
+	\item \textbf{Redis:} Slouží jako in-memory úložiště pro dočasná a často měněná data. Ukládají se zde například aktuální stavy konektorů nebo poslední autorizované RFID tagy pro rychlý přístup.
 \end{itemize}
 
-V následujících sekcích se podrobněji podíváme na základní prvky \LaTeX{} a naučíme se, jak je používat k vytváření kvalitních dokumentů.
-
-
-\section{Základní struktura dokumentu}
-\label{sec:zakladni_struktura}
-
-V této kapitole se podrobněji podíváme na základní strukturu dokumentu v \LaTeX{}u. Po porozumění této struktuře budete schopni vytvářet vlastní dokumenty s přizpůsobeným formátováním a strukturou.
-
-\subsection{Preambule dokumentu}
-Preambule je první částí každého \LaTeX{}ového dokumentu. Zde definujeme typ dokumentu, který chceme vytvořit, a nastavíme různé parametry, které ovlivňují celkový vzhled dokumentu. Preambule také často obsahuje příkazy pro načítání různých balíčků, které rozšiřují základní funkčnost \LaTeX{}u.
-
-\begin{verbatim}
-	\documentclass[options]{class}
-	\usepackage[options]{package}
-\end{verbatim}
-
-\subsection{Hlavní tělo dokumentu}
-Hlavní tělo dokumentu začíná příkazem \verb|\begin{document}| a končí \verb|\end{document}|. Veškerý obsah, který chcete mít ve svém dokumentu, by měl být umístěn mezi tyto dva příkazy. 
-
-\subsection{Sekce a podsekce}
-Pro organizaci obsahu se často používají sekce a podsekce. Tyto struktury pomáhají čtenáři lépe navigovat dokumentem a rozdělit text do logických bloků.
-
-\begin{verbatim}
-	\section{Název sekce}
-	\subsection{Název podsekce}
-	\subsubsection{Název podpodsekce}
-\end{verbatim}
-
-\subsection{Odstavce a rozestupy}
-V \LaTeX{}u je nový odstavec vytvořen jednoduše vložením jedné nebo více prázdných řádek. Rozestupy mezi odstavci, stejně jako zarovnání textu, můžeme upravit podle potřeby.
-
-\section{Práce s textem}
-\label{sec:prace_s_textem}
-
-Tato část se zaměřuje na základní techniky práce s textem v \LaTeX{}u, včetně formátování textu, vytváření seznamů a využití křížových odkazů a poznámek pod čarou.
-
-\subsection{Formátování textu}
-Formátování textu je klíčovým prvkem pro zvýraznění důležitých informací a zlepšení čitelnosti dokumentu.
-
-\subsubsection{Zvýraznění textu}
-V \LaTeX{}u existuje několik způsobů, jak zvýraznit text. Můžeme použít tučné písmo, kurzívu nebo podtržení.
-
-\begin{verbatim}
-	\textbf{tučné písmo}, \textit{kurzíva}, \underline{podtržený text}
-\end{verbatim}
-
-\subsubsection{Seznamy a výčty}
-Seznamy jsou užitečné pro strukturování informací a jejich uspořádání do čitelné formy. \LaTeX{} podporuje nečíslované, číslované a popisné seznamy.
-
-\begin{verbatim}
-	\begin{itemize}
-		\item Nečíslovaný seznam
-	\end{itemize}
-	
-	\begin{enumerate}
-		\item Číslovaný seznam
-	\end{enumerate}
-	
-	\begin{description}
-		\item[Popisek] Popisný seznam
-	\end{description}
-\end{verbatim}
-
-\subsection{Křížové odkazy a poznámky pod čarou}
-Křížové odkazy a poznámky pod čarou jsou důležité pro odkazování na jiné části dokumentu a poskytování dodatečných informací.
-
-\subsubsection{Křížové odkazy}
-Pomocí křížových odkazů můžeme odkazovat na jiné sekce, obrázky nebo tabulky v dokumentu.
-
-\begin{verbatim}
-	\label{sec:nazev_sekce}
-	Odkaz na sekci \ref{sec:nazev_sekce}.
-\end{verbatim}
-
-\subsubsection{Poznámky pod čarou}
-Poznámky pod čarou poskytují dodatečné informace bez přerušení toku hlavního textu.
-
-\begin{verbatim}
-	Text s poznámkou pod čarou.\footnote{Text poznámky pod čarou.}
-\end{verbatim}
-
-
-
-\section{Matematické vzorce a symboly}
-\label{sec:matematicke_vzorce_a_symboly}
-
-Tato část poskytuje přehled o vkládání matematických vzorců a symbolů do dokumentů v \LaTeX{}u, což je nezbytné pro tvorbu akademických a vědeckých textů.
-
-\subsection{Základní matematické prostředí}
-\LaTeX{} nabízí několik prostředí pro práci s matematikou, včetně "math" pro základní matematické výrazy a "displaymath" pro samostatné rovnice.
-
-\begin{verbatim}
-	$z = x + y$ % Inline matematika
-	\begin{displaymath}
-		z = x + y
-	\end{displaymath}
-\end{verbatim}
-
-\subsection{Rovnice a symboly}
-Matematické rovnice a symboly jsou základem mnoha vědeckých dokumentů, a \LaTeX{} poskytuje širokou škálu nástrojů pro jejich efektivní použití.
-
-\subsubsection{Vložení jednoduché rovnice}
-Pro vložení jednoduché rovnice můžeme použít prostředí "equation" nebo "align" pro více rovnic s zarovnáním.
-
-\begin{verbatim}
-	\begin{equation}
-		E = mc^2
-	\end{equation}
-\end{verbatim}
-
-\subsubsection{Pokročilé matematické výrazy}
-Pro složitější matematické výrazy, jako jsou integrály, sumy nebo frakce, \LaTeX{} nabízí rozsáhlé možnosti.
-
-\begin{verbatim}
-	\begin{equation}
-		\int_0^\infty e^{-x} \, dx
-	\end{equation}
-\end{verbatim}
-
-
-
-\section{Práce s obrázky a tabulkami}
-\label{sec:prace_s_obrazky_a_tabulkami}
-
-Tato kapitola je zaměřena na vkládání a formátování obrázků a tabulek v \LaTeX{}u, což jsou klíčové dovednosti pro vytváření vizuálně atraktivních a informativních dokumentů.
-
-\subsection{Vkládání obrázků}
-Vkládání obrázků do dokumentů \LaTeX{}u umožňuje autorům přidávat vizuální prvky, které podporují a doplňují textový obsah.
-
-\subsubsection{Formáty obrázků}
-\LaTeX{} podporuje různé formáty obrázků, včetně populárních formátů jako JPEG, PNG a PDF. Výběr správného formátu je důležitý pro kvalitu a velikost souboru.
-
-\begin{verbatim}
-	\includegraphics[width=0.5\textwidth]{obrazek.jpg}
-\end{verbatim}
-
-\subsubsection{Pozicování obrázků}
-Správné pozicování obrázků je klíčové pro zachování čitelnosti a estetiky dokumentu. \LaTeX{} nabízí několik možností, jak ovlivnit umístění obrázků v textu.
-
-\begin{verbatim}
-	\begin{figure}[h]
-		\centering
-		\includegraphics[width=0.5\textwidth]{obrazek.jpg}
-		\caption{Popisek obrázku}
-		\label{fig:obrazek}
-	\end{figure}
-\end{verbatim}
-
-\subsection{Vytváření tabulek}
-Tabulky jsou nezbytné pro organizované a efektivní prezentování dat. \LaTeX{} umožňuje vytváření jak jednoduchých, tak složitých tabulek.
-
-\subsubsection{Základní tabulky}
-Pro vytváření základních tabulek lze využít prostředí "tabular". Jednoduchá tabulka může být vytvořena bez složitých formátovacích nástrojů.
-
-\begin{verbatim}
-	\begin{tabular}{|c|c|c|}
-		\hline
-		A & B & C \\
-		\hline
-		1 & 2 & 3 \\
-		\hline
-	\end{tabular}
-\end{verbatim}
-
-\subsubsection{Pokročilé tabulky}
-Pro složitější tabulky, jako jsou tabulky s více řádky nebo sloupci, lze použít pokročilé formátovací možnosti, jako jsou sloučené buňky a speciální zarovnání.
-
-\begin{verbatim}
-	\begin{table}[h]
-		\centering
-		\begin{tabular}{|c|c|c|}
-			\hline
-			\multirow{2}{*}{A} & B1 & C1 \\
-			\cline{2-3}
-			& B2 & C2 \\
-			\hline
-		\end{tabular}
-		\caption{Pokročilá tabulka}
-		\label{tab:pokrocila_tabulka}
-	\end{table}
-\end{verbatim}
-
-
-
-\section{Bibliografie a citace}
-\label{sec:bibliografie_a_citace}
-
-Tato kapitola poskytuje podrobný návod na vytváření bibliografie a správné citování zdrojů v \LaTeX{}u, což jsou nezbytné dovednosti pro akademické psaní a publikování.
-
-\subsection{Vytváření bibliografie}
-\LaTeX{} umožňuje efektivní správu bibliografických záznamů a jejich automatické formátování. Tento proces zahrnuje několik kroků od definování zdrojů po jejich začlenění do dokumentu.
-
-\begin{verbatim}
-	\begin{thebibliography}{99}
-		\bibitem{nazev}
-		Autor, \emph{Název knihy}, Nakladatelství, Rok.
-	\end{thebibliography}
-\end{verbatim}
-
-\subsection{Citování zdrojů}
-Správné citování zdrojů je klíčové pro akademickou integritu a umožňuje čtenářům dohledat zmiňované informace. V \LaTeX{}u je možné citovat zdroje jednoduše pomocí příkazu \verb|\cite|.
-
-\begin{verbatim}
-	Jak bylo zmíněno v \cite{nazev}, ...
-\end{verbatim}
-
-
-
-	
+\section{Analýza komunikace a testovací konzole}
+Před samotnou implementací serveru bylo nutné detailně pochopit tok zpráv v protokolu OCPP. Za tímto účelem byla v rané fázi projektu vytvořena \textbf{interaktivní testovací konzole} (CLI aplikace). 
+Tento nástroj umožňoval simulovat serverovou stranu a manuálně odpovídat na zprávy přicházející z reálné nebo simulované nabíječky. Díky tomuto experimentálnímu přístupu bylo možné přesně zmapovat sekvence zpráv pro procesy jako \texttt{BootNotification} či \texttt{StartTransaction} a ověřit chování nabíječky při různých chybových stavech ještě před napsáním finálního kódu.
 
 	\chapter{Tipy k psaní}
 	\pagestyle{fancy}

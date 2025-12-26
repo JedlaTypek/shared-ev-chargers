@@ -1,3 +1,4 @@
+# app/core/config.py
 from typing import List, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
@@ -20,7 +21,12 @@ class Config(BaseSettings):
     redis_port: int = 6379
 
     # JWT secret
-    secret_key: str
+    secret_key: str = "zmen_tohle_za_dlouhy_nahodny_string_v_produkci"
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30 # Token platí 30 minut
+
+    # OCPP API Key (pro komunikaci mezi FastAPI a OCPP serverem)
+    ocpp_api_key: str = "changeme"
 
     # --- CORS CONFIGURATION ---
     # Defaultně prázdný seznam. Pydantic si ho načte z BACKEND_CORS_ORIGINS v .env

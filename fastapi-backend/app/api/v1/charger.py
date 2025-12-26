@@ -2,41 +2,56 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 
-# Sloučené importy (DB i Redis)
-from app.api.v1.deps import get_db, get_redis
-# Sloučené modely (TechnicalStatus pro Boot, AuthorizeRequest pro RFID)
-from app.models.charger import (
-    ChargerCreate,
-    ChargerExistenceCheck, 
-    ChargerRead, 
-    ChargerUpdate, 
-    ChargerTechnicalStatus, 
-    ChargerAuthorizeRequest
-)
+from app.api.v1.deps import get_db, get_redis, get_current_user
+from app.models.charger import ChargerCreate, ChargerRead, ChargerUpdate
 from app.services.charger_service import ChargerService
+from app.db.schema import User
+from app.models.enums import UserRole
+from app.api.v1.deps import get_charger_service
 
 router = APIRouter()
 
-def get_charger_service(
-    db: AsyncSession = Depends(get_db),
-    redis: Redis = Depends(get_redis)
-) -> ChargerService:
-    return ChargerService(session=db, redis=redis)
-
-@router.get("", response_model=list[ChargerRead])
-async def get_chargers(service: ChargerService = Depends(get_charger_service)):
+# --- GET CHARGERS (Public / Private) ---
+@router.get("/", response_model=list[ChargerRead])
+async def get_chargers(
+    mine: bool = False, # ?mine=true (jen moje)
+    service: ChargerService = Depends(get_charger_service),
+    # Volitelně uživatel (pokud chce filtrovat "moje", musí být přihlášen)
+    # Pro veřejnou mapu nemusí být přihlášen
+    current_user: User | None = Depends(get_current_user) # Tady možná použít optional, pokud máš
+):
+    # Pokud uživatel chce vidět jen svoje, musí být přihlášen
+    if mine:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required for 'mine' filter")
+        return await service.list_chargers(owner_id=current_user.id)
+    
+    # Jinak vrátíme všechny (veřejná mapa)
     return await service.list_chargers()
 
-@router.post("", response_model=ChargerRead, status_code=status.HTTP_201_CREATED)
+# --- CREATE CHARGER (Protected) ---
+@router.post("/", response_model=ChargerRead, status_code=status.HTTP_201_CREATED)
 async def create_charger(
     charger_data: ChargerCreate,
-    service: ChargerService = Depends(get_charger_service)
+    service: ChargerService = Depends(get_charger_service),
+    current_user: User = Depends(get_current_user)
 ):
     try:
+        # Logika: Admin může vytvořit nabíječku komukoliv.
+        # Běžný uživatel jen sobě.
+        is_admin = current_user.role == UserRole.admin
+        
+        if not is_admin:
+            # Vynutíme ID vlastníka na aktuálního uživatele
+            charger_data.owner_id = current_user.id
+            # Běžný user nemůže hned aktivovat, pokud by to podléhalo schválení (volitelné)
+            # charger_data.is_active = True 
+        
         return await service.create_charger(charger_data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# --- GET CHARGER DETAIL ---
 @router.get("/{charger_id}", response_model=ChargerRead)
 async def get_charger(
     charger_id: int, 
@@ -47,97 +62,45 @@ async def get_charger(
         raise HTTPException(status_code=404, detail="Charger not found")
     return charger
 
+# --- UPDATE CHARGER (Protected) ---
 @router.patch("/{charger_id}", response_model=ChargerRead)
 async def update_charger(
     charger_id: int,
     charger_update: ChargerUpdate,
-    service: ChargerService = Depends(get_charger_service)
+    service: ChargerService = Depends(get_charger_service),
+    current_user: User = Depends(get_current_user)
 ):
-    updated = await service.update_charger(charger_id, charger_update)
-    if not updated:
+    # 1. Najít nabíječku
+    charger = await service.get_charger(charger_id)
+    if not charger:
         raise HTTPException(status_code=404, detail="Charger not found")
+
+    # 2. Kontrola oprávnění (Vlastník nebo Admin)
+    is_admin = current_user.role == UserRole.admin
+    if charger.owner_id != current_user.id and not is_admin:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    # 3. Update
+    updated = await service.update_charger(charger_id, charger_update)
     return updated
 
+# --- DELETE CHARGER (Protected) ---
 @router.delete("/{charger_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_charger(
     charger_id: int,
-    service: ChargerService = Depends(get_charger_service)
+    service: ChargerService = Depends(get_charger_service),
+    current_user: User = Depends(get_current_user)
 ):
-    success = await service.delete_charger(charger_id)
-    if not success:
+    # 1. Najít nabíječku
+    charger = await service.get_charger(charger_id)
+    if not charger:
         raise HTTPException(status_code=404, detail="Charger not found")
+
+    # 2. Kontrola oprávnění
+    is_admin = current_user.role == UserRole.admin
+    if charger.owner_id != current_user.id and not is_admin:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
+    # 3. Delete
+    await service.delete_charger(charger_id)
     return
-
-# --- OCPP Endpoints ---
-
-@router.post("/boot-notification/{ocpp_id}", response_model=ChargerRead)
-async def handle_boot_notification(
-    ocpp_id: str,
-    data: ChargerTechnicalStatus,
-    service: ChargerService = Depends(get_charger_service)
-):
-    """
-    Voláno z Node.js při startu nabíječky.
-    Ověří existenci a uloží technická data.
-    """
-    charger = await service.update_technical_status(ocpp_id, data)
-    
-    if not charger:
-        # 404 vrátí Node.js serveru signál, že má poslat "Rejected"
-        raise HTTPException(status_code=404, detail="Charger not registered")
-        
-    return charger
-
-@router.post("/authorize/{ocpp_id}")
-async def authorize_charger(
-    ocpp_id: str,
-    auth_request: ChargerAuthorizeRequest,
-    service: ChargerService = Depends(get_charger_service)
-):
-    """
-    Voláno z OCPP serveru při akci 'Authorize'.
-    1. Ověří kartu v DB.
-    2. Uloží autorizaci do Redisu (cache).
-    3. Vrátí status (Accepted/Invalid/Blocked).
-    """
-    # service.authorize_tag vrací dict {status: "..."}
-    id_tag_info = await service.authorize_tag(ocpp_id, auth_request.id_tag)
-    
-    # Zabalíme to do idTagInfo, jak to očekává OCPP logika
-    return {"idTagInfo": id_tag_info}
-
-@router.get("/authorized-tag/{ocpp_id}")
-async def get_authorized_tag(
-    ocpp_id: str,
-    service: ChargerService = Depends(get_charger_service)
-):
-    """
-    Vrátí poslední autorizovanou kartu pro danou nabíječku,
-    pokud ještě nevypršel její časový limit (60s).
-    """
-    tag = await service.get_authorized_tag(ocpp_id)
-    
-    if not tag:
-        # Pokud v Redisu nic není (nikdo nepípl nebo už to vypršelo)
-        raise HTTPException(status_code=404, detail="No authorized tag found (or expired)")
-    
-    return {"id_tag": tag}
-
-@router.get("/exists/{ocpp_id}", response_model=ChargerExistenceCheck)
-async def check_charger_exists(
-    ocpp_id: str, 
-    service: ChargerService = Depends(get_charger_service)
-):
-    """
-    Rychlé ověření pro handshake OCPP serveru.
-    """
-    charger = await service.check_exists_by_ocpp(ocpp_id)
-    if not charger:
-        raise HTTPException(status_code=404, detail="Charger not found")
-    
-    # Zde přistupujeme k datům přes klíč slovníku, protože service vrací dict.
-    # Pydantic to pak automaticky převede na instanci ChargerExistenceCheck.
-    if not charger["is_active"]:
-        raise HTTPException(status_code=403, detail="Charger is disabled")
-
-    return charger
