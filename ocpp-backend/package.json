@@ -1,7 +1,7 @@
 {
-  "name": "shared-ev-chargers",
-  "version": "1.0.0",
-  "description": "Backend pro OCPP nabíječky s websocket serverem, REST API (FastAPI), PostgreSQL pro data a Redis pro krátkodobé úložiště.",
+  "name": "Voltuj",
+  "version": "0.1.0",
+  "description": "Backend pro správu EV nabíječek s podporou protokolu OCPP 1.6.",
   "homepage": "https://github.com/JedlaTypek/shared-ev-chargers#readme",
   "bugs": {
     "url": "https://github.com/JedlaTypek/shared-ev-chargers/issues"
@@ -11,7 +11,7 @@
     "url": "git+https://github.com/JedlaTypek/shared-ev-chargers.git"
   },
   "license": "ISC",
-  "author": "",
+  "author": "Filip Jedlička",
   "type": "module",
   "main": "index.js",
   "scripts": {
