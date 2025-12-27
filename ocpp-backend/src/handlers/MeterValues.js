@@ -1,47 +1,46 @@
-import { ocppResponse } from "../utils/ocppResponse.js";
-import { config } from "../utils/config.js"; 
-import axios from "axios";
+import apiClient from "../utils/apiClient.js";
 
 export default async function handleMeterValues({ client, payload }) {
-  const { transactionId, meterValue } = payload;
-  
-  // 1. Získání poslední (nejnovější) hodnoty z pole
+  const { transactionId, connectorId, meterValue } = payload;
+
+  // Log pro debug
+  client.log.debug({ transactionId }, "📊 MeterValues received");
+
+  // 1. Získání poslední (nejnovější) hodnoty z pole měření
+  // OCPP může poslat více vzorků najednou, nás zajímá ten aktuální (poslední)
   const lastSample = meterValue[meterValue.length - 1];
-  
-  // 2. Hledáme "Energy.Active.Import.Register" (celkový stav v Wh)
-  // Někdy nabíječky posílají jen hodnotu bez 'measurand', default je Import.Register
+
+  if (!lastSample) {
+    return {}; // Prázdný payload, ignorujeme
+  }
+
+  // 2. Hledáme "Energy.Active.Import.Register" (stav elektroměru v Wh)
+  // Pokud nabíječka neposílá 'measurand', specifikace říká, že default je Import Register.
   const energyImport = lastSample.sampledValue.find(
     (v) => v.measurand === "Energy.Active.Import.Register" || !v.measurand
   );
 
-  client.log.info(
-    { 
-      txId: transactionId, 
-      energy: energyImport ? `${energyImport.value} ${energyImport.unit || 'Wh'}` : "N/A" 
-    }, 
-    "📊 MeterValues received"
-  );
-
-  // 3. Pokud máme hodnotu a transakci, pošleme update do API
+  // 3. Pokud jsme našli hodnotu energie a máme ID transakce, pošleme to na backend
   if (energyImport && transactionId) {
     try {
-      // Převedeme na celé číslo (int)
+      // Převedeme string na číslo (int)
       const valueInt = parseInt(energyImport.value, 10);
       
-      await axios.post(`${config.apiUrl}/transactions/meter-values`, {
+      // Voláme API: POST /transactions/meter-values
+      await apiClient.post("/transaction/meter-values", {
         transaction_id: transactionId,
         meter_value: valueInt
       });
 
-      // client.log.debug("💾 Meter value saved"); // Debug log, ať nespamujeme
+      client.log.debug({ val: valueInt }, "💾 Meter value saved to DB");
 
     } catch (error) {
-      // Chyba updatu nesmí shodit spojení s nabíječkou
-      const msg = error.response ? error.response.status : error.message;
-      client.log.warn({ err: msg }, "⚠️ Failed to save meter value to DB");
+      // Chyba při ukládání (např. transakce už neexistuje)
+      // Nesmíme shodit spojení, jen zalogujeme varování.
+      client.log.warn({ err: error.message }, "⚠️ Failed to save meter value");
     }
   }
 
-  // Odpověď pro nabíječku je vždy prázdná
+  // Odpověď pro nabíječku je vždy prázdná (podle OCPP specifikace)
   return {};
 }

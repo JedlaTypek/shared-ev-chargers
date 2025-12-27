@@ -1,8 +1,8 @@
+import apiClient from "../utils/apiClient.js";
 import { ocppResponse } from "../utils/ocppResponse.js";
-import { config } from "../utils/config.js";
-import axios from "axios";
 
 export default async function handleBootNotification({ client, payload }) {
+  // Rozbalení dat
   const { 
     chargePointVendor, 
     chargePointModel, 
@@ -11,45 +11,37 @@ export default async function handleBootNotification({ client, payload }) {
   } = payload;
 
   const ocppId = client.identity;
+
   client.log.info({ payload }, "📦 BootNotification received");
 
   try {
-    // Axios automaticky:
-    // 1. Nastaví Content-Type: application/json
-    // 2. Převede objekt na JSON string
-    // 3. Vyhodí error, pokud API vrátí 4xx nebo 5xx
-    const response = await axios.post(
-      `${config.apiUrl}/chargers/boot-notification/${ocppId}`,
-      {
-        vendor: chargePointVendor,
-        model: chargePointModel,
-        serial_number: chargePointSerialNumber,
-        firmware_version: firmwareVersion
-      }
-    );
+    // 1. Volání API přes apiClient
+    // apiClient už má nastavený BaseURL (např. http://api:8000/api/v1/internal)
+    // Takže píšeme jen koncovou část cesty.
+    await apiClient.post(`/boot-notification/${ocppId}`, {
+      vendor: chargePointVendor,
+      model: chargePointModel,
+      serial_number: chargePointSerialNumber,
+      firmware_version: firmwareVersion
+    });
 
-    // Pokud jsme zde, odpověď je OK (200-299)
-    const chargerData = response.data;
-    
-    client.log.info(
-      { id: chargerData.id, model: chargerData.model }, 
-      "✅ Charger authorized and updated"
-    );
+    // 2. Pokud API neodpoví chybou (axios by hodil error), pokračujeme
+    client.log.info("✅ Charger authorized and updated");
 
+    // 3. Vracíme Accepted
     return ocppResponse.bootNotification("Accepted", 300);
 
   } catch (error) {
-    if (error.response) {
-      // API odpovědělo chybou (např. 403 Forbidden)
-      client.log.warn(
-        { status: error.response.status, data: error.response.data }, 
-        "⚠️ Charger rejected by API"
-      );
-      return ocppResponse.bootNotification("Rejected", 60);
-    } else {
-      // Chyba sítě (API nedostupné)
-      client.log.error({ err: error.message }, "💥 Failed to contact API backend");
-      return ocppResponse.bootNotification("Pending", 30);
-    }
+    // Pokud API vrátí chybu (4xx, 5xx) nebo je nedostupné
+    
+    // Zjistíme, jestli jde o odmítnutí API (např. 404/403) nebo chybu sítě
+    const status = error.response ? error.response.status : "NetworkError";
+    const msg = error.response?.data?.detail || error.message;
+
+    client.log.warn({ status, err: msg }, "⚠️ BootNotification rejected or failed");
+
+    // Vracíme Rejected (nebo Pending, pokud je to jen výpadek sítě - volitelné)
+    // Tady pro jistotu dáváme Rejected s kratším intervalem, ať to zkusí znovu.
+    return ocppResponse.bootNotification("Rejected", 60);
   }
 }

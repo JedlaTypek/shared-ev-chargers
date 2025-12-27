@@ -1,30 +1,28 @@
+import apiClient from "../utils/apiClient.js";
 import { ocppResponse } from "../utils/ocppResponse.js";
-import { config } from "../utils/config.js"; 
-import axios from "axios";
 
 export default async function handleStatusNotification({ client, payload }) {
-  const { connectorId, status, errorCode } = payload;
   const ocppId = client.identity;
+  const { connectorId, status, errorCode, info, timestamp } = payload;
 
-  client.log.info({ connectorId, status }, "⚡ StatusNotification received");
+  client.log.info({ connectorId, status }, "ℹ️ StatusNotification");
 
+  // Konektor 0 je celá nabíječka, zajímají nás hlavně konektory 1+
   if (connectorId > 0) {
     try {
-      const response = await axios.post(`${config.apiUrl}/connectors/ocpp-status`, {
-        ocpp_id: ocppId,
-        connector_number: connectorId,
-        status: status,
-        error_code: errorCode
-      });
-
-      client.log.debug({ apiResponse: response.data }, "✅ Connector status updated");
-
+        await apiClient.post("/connector-status", {
+            ocpp_id: ocppId,
+            connector_number: connectorId,
+            status: status,
+            error_code: errorCode,
+            info: info,
+            timestamp: timestamp || new Date().toISOString()
+        });
     } catch (error) {
-      // Stačí jeden catch pro síťové chyby i chyby API (404/500)
-      const errorDetail = error.response ? error.response.data : error.message;
-      client.log.error({ err: errorDetail }, "❌ Failed to update connector status");
+        client.log.error({ err: error.message }, "⚠️ Failed to update status");
     }
   }
 
-  return ocppResponse.statusNotification();
+  // Odpověď je prázdná
+  return {};
 }
