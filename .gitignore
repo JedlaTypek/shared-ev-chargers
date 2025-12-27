@@ -33,6 +33,7 @@ out/
 # --- OS ---
 .DS_Store
 Thumbs.db
+*.db
 
 # --- IDE ---
 .vscode/
