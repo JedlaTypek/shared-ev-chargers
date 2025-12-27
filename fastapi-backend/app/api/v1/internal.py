@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
+from datetime import datetime, timezone
 
 # Sloučené importy
 from app.api.v1 import deps
@@ -29,6 +30,19 @@ router = APIRouter(
 )
 
 # --- OCPP Endpoints ---
+
+@router.post("/heartbeat/{ocpp_id}")
+async def handle_heartbeat(
+    ocpp_id: str,
+    service: ChargerService = Depends(deps.get_charger_service)
+):
+    # 1. Uložíme do Redisu
+    await service.update_heartbeat(ocpp_id)
+    
+    # 2. Vrátíme aktuální čas serveru (UTC, Timezone Aware)
+    return {
+        "currentTime": datetime.now(timezone.utc).isoformat() # <--- OPRAVA
+    }
 
 @router.post("/boot-notification/{ocpp_id}", response_model=ChargerRead)
 async def handle_boot_notification(
@@ -73,7 +87,7 @@ async def get_authorized_tag(
     
     return {"id_tag": tag}
 
-@router.get("/exists/{ocpp_id}", response_model=ChargerExistenceCheck)
+@router.get("/charger/exists/{ocpp_id}", response_model=ChargerExistenceCheck)
 async def check_charger_exists(
     ocpp_id: str, 
     service: ChargerService = Depends(get_charger_service)

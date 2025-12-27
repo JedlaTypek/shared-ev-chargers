@@ -8,8 +8,8 @@ class RFIDCardBase(BaseModel):
     is_active: bool = True
 
 class RFIDCardCreate(RFIDCardBase):
-    # TODO: Až bude login, toto pole zmizí a vezme se z tokenu
-    owner_id: int
+    # ZMĚNA: Optional, protože běžný uživatel to nevyplňuje (doplní se z tokenu)
+    owner_id: Optional[int] = None 
 
 class RFIDCardUpdate(BaseModel):
     card_uid: Optional[str] = Field(None, min_length=4, max_length=64)

@@ -25,26 +25,36 @@ async def get_users(
     # Předáme parametr do service
     return await service.list_users(show_all=show_all)
 
-# --- CREATE USER (Registrace) ---
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def create_user(
-    user_data: UserCreate, # Přejmenoval jsem 'user' na 'user_data' pro přehlednost
+    user_data: UserCreate,
     service: UserService = Depends(get_user_service),
-    # ZMĚNA: Zkusíme načíst uživatele, ale je to volitelné (může být None)
+    # Použijeme get_current_user_optional (viz bod 2 níže, pokud ho ještě nemáš)
     current_user: User | None = Depends(deps.get_current_user_optional)
 ):
     try:
         # Zjistíme, jestli akci provádí Admin
         is_admin = current_user and current_user.role == UserRole.admin
 
-        # POKUD TO NENÍ ADMIN -> Vynutíme bezpečné hodnoty
+        # POKUD TO NENÍ ADMIN (tzn. běžná registrace nebo hacker)
         if not is_admin:
-            user_data.role = UserRole.user
+            # 1. Bezpečnostní pojistka: Nikdo se nesmí sám registrovat jako Admin
+            if user_data.role == UserRole.admin:
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Cannot register as Admin. Please contact support."
+                )
+            
+            # 2. Povolíme roli 'owner' nebo 'user'.
+            # Pokud uživatel nic nepošle (je to None), nastavíme default 'user'.
+            if not user_data.role:
+                user_data.role = UserRole.user
+            
+            # 3. Vynutíme ostatní bezpečné hodnoty
             user_data.balance = 0
-            # Můžeme vynutit i is_active, pokud chceme:
-            # user_data.is_active = True 
+            user_data.is_active = True 
 
-        # Pokud je to Admin, necháme hodnoty tak, jak přišly v JSONu
+        # Pokud je to Admin, necháme projít všechno (může vytvářet adminy i měnit zůstatky)
         
         return await service.create_user(user_data)
         

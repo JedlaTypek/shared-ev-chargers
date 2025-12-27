@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1 import deps
-from app.models.rfid import RFIDCardCreate, RFIDCardRead
+from app.models.rfid import RFIDCardCreate, RFIDCardRead, RFIDCardUpdate
 from app.services.rfid_service import RFIDService
 from app.db.schema import User
 from app.models.enums import UserRole
@@ -37,14 +37,46 @@ async def create_card(
     service: RFIDService = Depends(get_rfid_service),
     current_user: User = Depends(deps.get_current_user)
 ):
+    # Logika vlastníka (User = sobě, Admin = volitelně komukoliv)
+    target_owner_id = current_user.id
+    if current_user.role == UserRole.admin and card_data.owner_id is not None:
+        target_owner_id = card_data.owner_id
+
     try:
-        # Tady je prostor pro logiku "Admin může vytvořit kartu komukoliv".
-        # Zatím to necháme tak, že se karta tvoří pro current_user.
-        # Pokud bys to chtěl rozšířit, musel bys v card_data poslat owner_id 
-        # a zkontrolovat, zda je current_user Admin.
-        
-        return await service.create_card(card_data, owner_id=current_user.id)
+        return await service.create_card(card_data, owner_id=target_owner_id)
     except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# --- UPDATE CARD ---
+@router.patch("/{card_id}", response_model=RFIDCardRead)
+async def update_card(
+    card_id: int,
+    card_update: RFIDCardUpdate,
+    service: RFIDService = Depends(get_rfid_service),
+    current_user: User = Depends(deps.get_current_user)
+):
+    # 1. Najít kartu
+    card = await service.get_card(card_id)
+    if not card:
+        raise HTTPException(status_code=404, detail="Card not found")
+
+    # 2. Kontrola oprávnění: Je to moje karta? Nebo jsem Admin?
+    is_owner = card.owner_id == current_user.id
+    is_admin = current_user.role == UserRole.admin
+
+    if not is_owner and not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="You do not have permission to update this card."
+        )
+
+    # 3. Update
+    try:
+        updated = await service.update_card(card_id, card_update)
+        return updated
+    except ValueError as e:
+        # Zachytíme chybu unikátnosti UID (pokud by se měnilo na existující)
         raise HTTPException(status_code=400, detail=str(e))
 
 # --- GET CARD DETAIL ---
@@ -85,7 +117,6 @@ async def delete_card(
     # 3. Soft Delete
     success = await service.delete_card(card_id)
     if not success:
-         # Teoreticky by se sem kód neměl dostat díky kontrole výše
          raise HTTPException(status_code=404, detail="Card not found")
     return
 

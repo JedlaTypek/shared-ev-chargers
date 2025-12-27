@@ -1,8 +1,8 @@
-"""Final DB schema
+"""Add price_per_kwh to charge_logs
 
-Revision ID: 49f8fe78ada2
+Revision ID: a80f3e7d07ec
 Revises: 
-Create Date: 2025-12-25 21:27:13.197101
+Create Date: 2025-12-27 13:49:53.238389
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '49f8fe78ada2'
+revision: str = 'a80f3e7d07ec'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -89,6 +89,7 @@ def upgrade() -> None:
     sa.Column('meter_start', sa.Integer(), nullable=False),
     sa.Column('end_time', sa.DateTime(timezone=True), nullable=True),
     sa.Column('meter_stop', sa.Integer(), nullable=True),
+    sa.Column('price_per_kwh', sa.Numeric(precision=10, scale=2), nullable=True),
     sa.Column('energy_wh', sa.Integer(), nullable=True),
     sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=True),
     sa.Column('status', sa.Enum('running', 'completed', 'failed', 'cancelled', name='chargestatus'), nullable=False),

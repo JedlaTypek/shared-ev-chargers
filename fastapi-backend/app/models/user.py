@@ -17,6 +17,8 @@ class UserCreate(BaseModel):
     # Změna na Decimal. Výchozí hodnota jako string "0.00" zajistí přesnost.
     balance: Optional[Decimal] = Decimal("0.00")
 
+    is_active: Optional[bool] = True
+
 # Model pro čtení uživatele (Response)
 class UserRead(BaseModel):
     id: int

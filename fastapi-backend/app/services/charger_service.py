@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload, attributes
 from sqlalchemy import select
@@ -163,3 +164,32 @@ class ChargerService:
         if row:
             return {"id": row.id, "is_active": row.is_active}
         return None
+    
+    async def update_heartbeat(self, ocpp_id: str):
+        # A. Redis (ISO String)
+        redis_key = f"charger:{ocpp_id}:online"
+        
+        # Použijeme time-zone aware UTC čas
+        current_time = datetime.now(timezone.utc).isoformat() # <--- OPRAVA
+        
+        await self._redis.set(redis_key, current_time, ex=330)
+
+        # B. SQL Database (volitelné, pokud tam máš sloupec last_heartbeat)
+        charger = await self.get_charger_by_ocpp_id(ocpp_id)
+        if charger:
+            # SQLAlchemy si s timezone-aware objektem poradí (pokud máš DateTime(timezone=True))
+            # Pokud máš DateTime(timezone=False), uloží se to jako UTC bez info o zóně, což je OK.
+            charger.last_heartbeat = datetime.now(timezone.utc).replace(tzinfo=None) # .replace(tzinfo=None) je jistota pro naive sloupce
+            await self._db.commit()
+
+    async def is_charger_online(self, ocpp_id: str) -> bool:
+        """
+        Pomocná metoda pro frontend/mapu.
+        Zkontroluje, zda v Redisu existuje heartbeat klíč.
+        """
+        if not self._redis:
+            return False # Bez Redisu nevíme -> offline
+            
+        key = f"charger:{ocpp_id}:heartbeat"
+        exists = await self._redis.exists(key)
+        return exists > 0

@@ -33,13 +33,13 @@ class ChargerBase(BaseModel):
     city: Optional[str] = None
     postal_code: Optional[str] = None
     region: Optional[str] = None
-    is_active: bool = False
+    is_active: bool = True
 
 class ChargerCreate(ChargerBase):
     """
     Model pro vytváření nabíječky uživatelem.
     """
-    owner_id: int
+    owner_id: Optional[int] = None
     # ocpp_id je generováno systémem, uživatel ho nesmí zadávat
     # Technická data (vendor, model, serial_number, firmware_version) se doplní sama až po prvním připojení.
 

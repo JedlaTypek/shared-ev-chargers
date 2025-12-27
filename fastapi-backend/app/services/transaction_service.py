@@ -73,33 +73,60 @@ class TransactionService:
         # Vracíme ID řádku jako TransactionID
         return new_log.id
 
-    async def stop_transaction(self, data: TransactionStopRequest):
-        # 1. Najít transakci podle ID
+    async def stop_transaction(self, data: TransactionStopRequest) -> ChargeLog:
+        # 1. Najdeme běžící transakci
         stmt = select(ChargeLog).where(ChargeLog.id == data.transaction_id)
         result = await self._db.execute(stmt)
         log = result.scalars().first()
 
         if not log:
-            # Pokud transakce neexistuje, vrátíme úspěch, aby se nabíječka nezasekla
-            # (Může se stát, pokud server spadl a ztratil data z paměti, ale v DB by to být mělo)
-            return {"status": "Ignored"}
+            raise ValueError(f"Transaction {data.transaction_id} not found")
 
-        # 2. Výpočty
-        meter_stop = data.meter_stop
-        consumed_wh = max(0, meter_stop - log.meter_start)
-        consumed_kwh = Decimal(consumed_wh) / Decimal(1000)
+        # Pokud už je hotová, vrátíme ji (idempotence) - aby se to nepočítalo dvakrát
+        if log.status == ChargeStatus.completed:
+            return log
+
+        # 2. Aktualizace dat z Requestu
+        log.meter_stop = data.meter_stop
         
-        price = consumed_kwh * log.price_per_kwh
+        # Pokud request obsahuje timestamp, použijeme ho, jinak aktuální čas
+        if data.timestamp:
+            log.end_time = data.timestamp
+        else:
+            from datetime import datetime, timezone
+            log.end_time = datetime.now(timezone.utc)
 
-        # 3. Update záznamu
-        log.meter_stop = meter_stop
-        log.end_time = data.timestamp
-        log.energy_wh = consumed_wh
-        log.price = round(price, 2)
-        log.status = ChargeStatus.completed # Opraveno na malé písmena podle Enumu
+        # 3. Změna stavu na COMPLETED
+        log.status = ChargeStatus.completed
 
+        # 4. Výpočet spotřeby (pokud máme start i stop)
+        # meter_start a meter_stop jsou ve Wh
+        if log.meter_start is not None and log.meter_stop is not None:
+            consumed_wh = log.meter_stop - log.meter_start
+            # Ošetření záporné spotřeby (pokud by elektroměr blbnul)
+            log.energy_wh = max(0, consumed_wh)
+        else:
+            log.energy_wh = 0
+
+        # 5. Výpočet Ceny
+        # Cena = (Wh / 1000) * Cena_za_kWh
+        if log.energy_wh > 0 and log.price_per_kwh:
+            # Převedeme na Decimal pro přesný výpočet, pokud je to potřeba, 
+            # ale Python to s Decimal v modelu zvládne.
+            # Dělíme 1000.0, abychom dostali kWh
+            kwh = log.energy_wh / 1000.0
+            # log.price_per_kwh je typu Decimal (z databáze)
+            # Výsledek převedeme na float nebo necháme, SQLAlchemy si poradí
+            log.price = float(log.price_per_kwh) * kwh
+        else:
+            log.price = 0
+
+        # 6. Uložení do DB
+        self._db.add(log)
         await self._db.commit()
-        return {"status": "Accepted"}
+        await self._db.refresh(log)
+
+        return log
     
     async def process_meter_value(self, data: TransactionMeterValueRequest):
         """
