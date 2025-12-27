@@ -1,18 +1,20 @@
 services:
   api:
     build: ./fastapi-backend
-    container_name: api
+    container_name: voltuj-api
     env_file: ./fastapi-backend/.env
     ports:
-      - "8000:80"
+      - "8000:80" # Ujisti se, že 8000 už není obsazené něčím jiným
     depends_on:
       - db
       - redis
     restart: unless-stopped
+    networks:
+      - voltuj-network
 
   ocpp:
     build: ./ocpp-backend
-    container_name: ocpp
+    container_name: voltuj-ocpp
     env_file: ./ocpp-backend/.env
     ports:
       - "9000:9000"
@@ -20,19 +22,29 @@ services:
       - redis
       - api
     restart: unless-stopped
+    networks:
+      - voltuj-network
 
   db:
     image: postgres:16
-    container_name: db
+    container_name: voltuj-db
     env_file: ./fastapi-backend/.env
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - voltuj-network
 
   redis:
     image: redis:7
-    container_name: redis
+    container_name: voltuj-redis
     restart: unless-stopped
+    networks:
+      - voltuj-network
 
 volumes:
   pgdata:
+
+networks:
+  voltuj-network:
+    driver: bridge

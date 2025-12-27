@@ -33,7 +33,7 @@ class ChargerService:
         result = await self._db.execute(stmt)
         return result.scalars().first()
 
-    async def _generate_ocpp_id(self, prefix: str = "CZ-ECLD") -> str:
+    async def _generate_ocpp_id(self, prefix: str = "VOLTUJ") -> str:
         stmt = (
             select(Charger.ocpp_id)
             .where(Charger.ocpp_id.like(f"{prefix}-%"))

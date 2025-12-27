@@ -1,7 +1,10 @@
 [project]
-name = "shader-ev-chargers"
+name = "Voltuj"
 version = "0.1.0"
-description = "Add your description here"
+description = "Backend pro správu EV nabíječek s podporou protokolu OCPP 1.6."
+authors = [
+    {name = "Filip Jedlička", email = "jedlicka.filip@seznam.cz"},
+]
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

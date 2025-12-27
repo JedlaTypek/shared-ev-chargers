@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from redis.asyncio import Redis
 
 # Sloučené importy
-from app.api.v1.deps import get_db, get_redis, get_current_user, get_charger_service
+from app.api.v1.deps import get_db, get_redis, get_current_user, get_charger_service, get_current_user_optional
 from app.models.charger import (
     ChargerCreate,
     ChargerExistenceCheck, 
@@ -21,12 +21,15 @@ router = APIRouter()
 # --- GET CHARGERS (Public / Private) ---
 @router.get("", response_model=list[ChargerRead])
 async def get_chargers(
-    mine: bool = False, # ?mine=true (jen moje)
+    mine: bool = False, # ?mine=true (přepínač)
     service: ChargerService = Depends(get_charger_service),
-    # Pro filtrování "moje" potřebujeme uživatele, jinak může být None
-    current_user: User | None = Depends(get_current_user) 
+    # ZMĚNA ZDE: Použijeme optional verzi. 
+    # Pokud uživatel nemá token, current_user bude None, ale nevyhodí to chybu 401.
+    current_user: User | None = Depends(get_current_user_optional) 
 ):
+    # Logika pro filtrování "jen moje"
     if mine:
+        # Pokud chce uživatel "svoje" nabíječky, ale není přihlášený -> CHYBA
         if not current_user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, 
@@ -34,7 +37,7 @@ async def get_chargers(
             )
         return await service.list_chargers(owner_id=current_user.id)
     
-    # Veřejný seznam všech nabíječek
+    # Veřejný seznam všech nabíječek (dostupný i pro current_user=None)
     return await service.list_chargers()
 
 

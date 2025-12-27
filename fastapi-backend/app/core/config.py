@@ -4,7 +4,7 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 class Config(BaseSettings):
-    project_name: str = "Shared EV Chargers"
+    project_name: str = "Voltuj"
     project_version: str = "0.1.0"
     
     debug: bool = False
@@ -13,11 +13,11 @@ class Config(BaseSettings):
     postgres_user: str
     postgres_password: str
     postgres_db: str
-    postgres_host: str = "db"
+    postgres_host: str = "voltuj-db"
     postgres_port: int = 5432
 
     # Redis
-    redis_host: str = "redis"
+    redis_host: str = "voltuj-redis"
     redis_port: int = 6379
 
     # JWT secret
