@@ -52,3 +52,17 @@ async def update_connector(
     
     # 4. Vrácení výsledku i se statusem z Redisu
     return await service.get_connector_with_status(connector_id)
+
+@router.get("/ocpp/{identity}/{ocpp_connector_id}", response_model=ConnectorRead)
+async def get_connector_by_ocpp_data(
+    identity: str,
+    ocpp_connector_id: int,
+    service: ConnectorService = Depends(get_connector_service)
+):
+    """
+    Voláno z Node.js backendu. 'identity' je ID z WebSocket URL.
+    """
+    connector = await service.get_by_ocpp_ids(identity, ocpp_connector_id)
+    if not connector:
+        raise HTTPException(status_code=404, detail="Connector not found")
+    return connector
