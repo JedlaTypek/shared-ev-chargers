@@ -34,7 +34,7 @@ def root():
 app.include_router(login.router, prefix="/api/v1/login", tags=["Login"])
 
 # 2. Internal (Pro OCPP server a nabíječky)
-app.include_router(internal.router, prefix="/api/v1/internal", tags=["Internal (OCPP)"])
+app.include_router(internal.router, prefix="/api/v1/internal", tags=["Internal (OCPP)"], include_in_schema=False)
 
 # 3. Users
 app.include_router(user.router, prefix="/api/v1/users", tags=["Users"])

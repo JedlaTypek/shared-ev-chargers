@@ -126,8 +126,13 @@ async def start_transaction(
     data: TransactionStartRequest,
     service: TransactionService = Depends(get_transaction_service)
 ):
-    tx_id = await service.start_transaction(data)
-    return {"transactionId": tx_id}
+    # Service nyní vrací slovník {"transaction_id": 123, "max_power": 22}
+    result = await service.start_transaction(data)
+    
+    return {
+        "transactionId": result["transaction_id"], # Pro zachování kompatibility s Node.js
+        "max_power": result["max_power"]           # Nové pole pro nastavení profilu
+    }
 
 @router.post("/transaction/stop")
 async def stop_transaction(

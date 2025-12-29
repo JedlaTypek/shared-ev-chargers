@@ -89,3 +89,17 @@ class ConnectorService:
         await self._db.commit()
         await self._db.refresh(connector)
         return connector
+
+    async def get_by_ocpp_ids(self, identity: str, ocpp_connector_id: int):
+        """
+        Najde konektor podle identity nabíječky (z URL) a čísla konektoru.
+        Předpokládáme, že 'identity' v URL odpovídá 'serial_number' v DB.
+        """
+        query = (
+            select(Connector)
+            .join(Charger)
+            .where(Charger.serial_number == identity)  # Zde mapujeme Identity -> SerialNumber
+            .where(Connector.connector_id == ocpp_connector_id)
+        )
+        result = await self.db.execute(query)
+        return result.scalars().first()

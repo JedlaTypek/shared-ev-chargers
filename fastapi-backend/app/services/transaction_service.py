@@ -26,8 +26,8 @@ class TransactionService:
         result = await self._db.execute(stmt)
         return result.scalars().first()
 
-    async def start_transaction(self, data: TransactionStartRequest) -> int:
-        # 1. Najít nabíječku podle OCPP ID
+    async def start_transaction(self, data: TransactionStartRequest) -> dict: # Změna návratového typu z int na dict
+        # 1. Najít nabíječku
         stmt = select(Charger).where(Charger.ocpp_id == data.ocpp_id)
         result = await self._db.execute(stmt)
         charger = result.scalars().first()
@@ -53,8 +53,6 @@ class TransactionService:
         rfid_id = rfid_card.id if rfid_card else None
 
         # 4. Vytvořit záznam
-        # Pozor: Nepředáváme transaction_id, protože v DB tabulce tento sloupec není.
-        # Jako TransactionID pro OCPP použijeme primární klíč (id) tohoto řádku.
         new_log = ChargeLog(
             charger_id=charger.id,
             connector_id=connector.id,
@@ -62,16 +60,21 @@ class TransactionService:
             rfid_card_id=rfid_id,
             start_time=data.timestamp,
             meter_start=data.meter_start,
-            status=ChargeStatus.running, # Opraveno na malé písmena podle Enumu
+            status=ChargeStatus.running,
             price_per_kwh=connector.price_per_kwh if connector.price_per_kwh else 0
         )
         
         self._db.add(new_log)
-        await self._db.flush() # Tímto se vygeneruje new_log.id
+        await self._db.flush()
         await self._db.commit()
 
-        # Vracíme ID řádku jako TransactionID
-        return new_log.id
+        # --- ZMĚNA: Vracíme více informací ---
+        # Předpokládám, že Connector má sloupec 'max_power' (kW)
+        # Pokud ne, doplňte si ho do modelu, nebo zde vraťte natvrdo třeba 11
+        return {
+            "transaction_id": new_log.id,
+            "max_power": connector.max_power if hasattr(connector, 'max_power') else 11
+        }
 
     async def stop_transaction(self, data: TransactionStopRequest) -> ChargeLog:
         # 1. Najdeme běžící transakci

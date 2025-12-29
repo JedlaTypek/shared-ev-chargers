@@ -50,6 +50,11 @@ class TransactionStartRequest(BaseModel):
     meter_start: int
     timestamp: datetime
 
+class StartTransactionResponse(BaseModel):
+    transaction_id: int
+    status: str
+    max_power: float | None = None # <-- TOTO JSME PŘIDALI (kW)
+
 # Data, která pošle OCPP server při stopu
 class TransactionStopRequest(BaseModel):
     transaction_id: int # ID, které jsme vygenerovali při startu
