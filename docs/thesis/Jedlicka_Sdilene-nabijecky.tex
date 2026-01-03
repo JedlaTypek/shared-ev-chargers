@@ -1,0 +1,959 @@
+% ŠABLONA PRO PSANÍ ZÁVĚREČNÉ STUDIJNÍ PRÁCE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Autor: Jakub Dokulil (kubadokulil99@gmail.com)
+% Upraveno pro: Filip Jedlička
+%
+\documentclass[12pt, a4paper,
+%oneside,      %% -- odkomentujte, pokud chcete svou práci mít pouze jednostrannou
+twoside,        %% -- pro oboustranné práce
+openright
+]{report}
+
+% --- odstraneni zbytkoveho textu "superiorSup" a pod. ---
+\AtBeginDocument{%
+	\immediate\write16{(cleaning stray figureversions output...)}%
+	\clearpage
+	\thispagestyle{empty}
+	\let\superiorSup\relax
+	\let\textOsF\relax
+	\let\textTOsF\relax
+	\let\liningLF\relax
+	\let\liningTLF\relax
+	\let\tabularTab\relax
+	\let\proportionalProp\relax
+	\let\tabularmath\relax
+	\let\proportionalmath\relax
+	\let\fontspechyperref\relax
+}
+%% Nutné balíčky a nastavení
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Proměnné
+\newcommand\obor{INFORMAČNÍ TECHNOLOGIE} 
+\newcommand\kodOboru{18-20-M/01} 
+\newcommand\zamereni{se zaměřením na počítačové sítě a programování} 
+\newcommand\skola{Střední škola průmyslová a umělecká, Opava} 
+\newcommand\trida{IT4} 
+\newcommand\jmenoAutora{Filip Jedlička}  
+\newcommand\skolniRok{2025/26} 
+\newcommand\datumOdevzdani{1. 1. 2026} 
+\newcommand\nazevPrace{Systém pro sdílení nabíječek elektroaut s využitím OCPP} 
+
+\title{\nazevPrace} 
+\author{\jmenoAutora} 
+\date{\datumOdevzdani} 
+
+\usepackage[top=2.5cm, bottom=2.5cm, left=3.5cm, right=1.5cm]{geometry} 
+
+\usepackage[czech]{babel} 
+\usepackage[utf8]{inputenc} 
+\usepackage[T1]{fontenc}
+\usepackage{cmap} 
+
+\usepackage{graphicx} 
+\usepackage{subcaption} 
+\usepackage{hyperref} 
+
+\linespread{1.25} 
+\setlength{\parskip}{0.5em} 
+\setlength{\parindent}{0pt}  
+
+
+\usepackage[pagestyles]{titlesec} 
+\titleformat{\chapter}[block]{\scshape\bfseries\LARGE}{\thechapter}{10pt}{\vspace{10pt}}[\vspace{-22pt}]
+% {příkaz}{odsazení zleva}{MEZERA NAD}{mezera pod}
+\titlespacing*{\chapter}{0pt}{-50pt}{20pt}
+\titleformat{\section}[block]{\scshape\bfseries\Large}{\thesection}{10pt}{\vspace{0pt}}
+\titleformat{\subsection}[block]{\bfseries\large}{\thesubsection}{10pt}{\vspace{0pt}}
+
+
+\usepackage{tocloft} 
+\setlength{\cftbeforechapskip}{0pt}  
+\setlength{\cftbeforesecskip}{0pt}   
+
+\setlength{\cftbeforetoctitleskip}{-50pt} 
+\setlength{\cftaftertoctitleskip}{20pt}   
+
+\setlength{\cftbeforeloftitleskip}{-50pt} 
+
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{1}
+
+% -------------------------------------------------------------------
+% NASTAVENÍ ZÁHLAVÍ A ZÁPATÍ (FancyHDR)
+% -------------------------------------------------------------------
+\usepackage{fancyhdr}
+\setlength{\headheight}{16pt} 
+
+\pagestyle{fancy}
+\fancyhf{} 
+\fancyfoot[C]{\thepage} 
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{plain}{%
+	\fancyhf{}
+	\fancyfoot[C]{\thepage}       
+	\renewcommand{\headrulewidth}{0pt} 
+}
+% -------------------------------------------------------------------
+
+\usepackage{booktabs}
+\usepackage{url}
+
+\usepackage{pdfpages} 
+\usepackage{upgreek} 
+
+\usepackage{amsmath}    
+\usepackage{amsfonts}   
+\usepackage{esint}      
+\usepackage{mathrsfs}
+\usepackage{helvet} 
+\usepackage{mathptmx} 
+
+\usepackage{emptypage}
+
+\makeatletter
+\@namedef{ver@figureversions.sty}{9999/99/99}
+\newcommand{\DeclareFigureVersion}[2]{}
+\newcommand{\figureversion}[1]{}
+\makeatother
+
+% Fixes for phantom commands
+\makeatletter
+\providecommand{\superiorSup}{}
+\providecommand{\textOsF}{}
+\providecommand{\textTOsF}{}
+\providecommand{\liningLF}{}
+\providecommand{\liningTLF}{}
+\providecommand{\tabularTab}{}
+\providecommand{\proportionalProp}{}
+\providecommand{\tabularmath}{}
+\providecommand{\proportionalmath}{}
+\makeatother
+
+\usepackage{Oswald} 
+
+\newcommand{\dif}{\mathrm{d}} 
+
+\usepackage{listings}
+\usepackage[table]{xcolor}
+
+\hyphenation{OCPP Nodejs FastAPI PostgreSQL WebSocket Docker Airbnb}
+
+\renewcommand{\lstlistingname}{Kód}
+\renewcommand{\lstlistlistingname}{Seznam programových kódů}
+
+%% Definice pro Listingy
+\lstdefinelanguage{JavaScript}{
+	morekeywords=[1]{break, continue, delete, else, for, function, if, in,
+		new, return, this, typeof, var, void, while, with},
+	morekeywords=[2]{false, null, true, boolean, number, undefined,
+		Array, Boolean, Date, Math, Number, String, Object},
+	morekeywords=[3]{eval, parseInt, parseFloat, escape, unescape},
+	sensitive,
+	morecomment=[s]{/*}{*/},
+	morecomment=[l]//,
+	morecomment=[s]{/**}{*/},
+	morestring=[b]',
+	morestring=[b]"
+}[keywords, comments, strings]
+
+\lstdefinelanguage[ECMAScript2015]{JavaScript}[]{JavaScript}{
+	morekeywords=[1]{await, async, case, catch, class, const, default, do,
+		enum, export, extends, finally, from, implements, import, instanceof,
+		let, static, super, switch, throw, try},
+	morestring=[b]`
+}
+
+\lstalias[]{ES6}[ECMAScript2015]{JavaScript}
+
+% Nastavení barev
+\definecolor{mediumgray}{rgb}{0.3, 0.4, 0.4}
+\definecolor{mediumblue}{rgb}{0.0, 0.0, 0.8}
+\definecolor{forestgreen}{rgb}{0.13, 0.55, 0.13}
+\definecolor{darkviolet}{rgb}{0.58, 0.0, 0.83}
+\definecolor{royalblue}{rgb}{0.25, 0.41, 0.88}
+\definecolor{crimson}{rgb}{0.86, 0.8, 0.24}
+
+% Nastavení pro Python
+\lstdefinestyle{Python}{
+	language=Python,
+	backgroundcolor=\color{white},
+	basicstyle=\ttfamily,
+	breakatwhitespace=false,
+	breaklines=false,
+	captionpos=b,
+	columns=fullflexible,
+	commentstyle=\color{mediumgray}\upshape,
+	emph={},
+	emphstyle=\color{crimson},
+	extendedchars=true,
+	fontadjust=true,
+	frame=single,
+	identifierstyle=\color{black},
+	keepspaces=true,
+	keywordstyle=\color{mediumblue},
+	keywordstyle={[2]\color{darkviolet}},
+	keywordstyle={[3]\color{royalblue}},
+	literate=%
+	{á}{{\'a}}1 {č}{{\v{c}}}1 {ď}{{\v{d}}}1 {é}{{\'e}}1 {ě}{{\v{e}}}1
+	{í}{{\'i}}1 {ň}{{\v{n}}}1 {ó}{{\'o}}1 {ř}{{\v{r}}}1 {š}{{\v{s}}}1
+	{ť}{{\v{t}}}1 {ú}{{\'u}}1 {ů}{{\r{u}}}1 {ý}{{\'y}}1 {ž}{{\v{z}}}1,        
+	numbers=left,
+	numbersep=5pt,
+	numberstyle=\tiny\color{black},
+	rulecolor=\color{black},
+	showlines=true,
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	stringstyle=\color{forestgreen},
+	tabsize=2,
+	title=\lstname,
+	upquote=true    
+}
+
+\lstdefinestyle{JSES6Base}{
+	backgroundcolor=\color{white},
+	basicstyle=\ttfamily,
+	breakatwhitespace=false,
+	breaklines=false,
+	captionpos=b,
+	columns=fullflexible,
+	commentstyle=\color{mediumgray}\upshape,
+	emph={},
+	emphstyle=\color{crimson},
+	extendedchars=true,
+	fontadjust=true,
+	frame=single,
+	identifierstyle=\color{black},
+	keepspaces=true,
+	keywordstyle=\color{mediumblue},
+	keywordstyle={[2]\color{darkviolet}},
+	keywordstyle={[3]\color{royalblue}},
+	literate=%
+	{á}{{\'a}}1 {č}{{\v{c}}}1 {ď}{{\v{d}}}1 {é}{{\'e}}1 {ě}{{\v{e}}}1
+	{í}{{\'i}}1 {ň}{{\v{n}}}1 {ó}{{\'o}}1 {ř}{{\v{r}}}1 {š}{{\v{s}}}1
+	{ť}{{\v{t}}}1 {ú}{{\'u}}1 {ů}{{\r{u}}}1 {ý}{{\'y}}1 {ž}{{\v{z}}}1,        
+	numbers=left,
+	numbersep=5pt,
+	numberstyle=\tiny\color{black},
+	rulecolor=\color{black},
+	showlines=true,
+	showspaces=false,
+	showstringspaces=false,
+	showtabs=false,
+	stringstyle=\color{forestgreen},
+	tabsize=2,
+	title=\lstname,
+	upquote=true 
+}
+
+\lstdefinestyle{JavaScript}{
+	language=JavaScript,
+	style=JSES6Base,
+}
+\lstdefinestyle{ES6}{
+	language=ES6,
+	style=JSES6Base
+}
+
+% Barvy pro JSON
+\colorlet{punct}{red!60!black}
+\definecolor{background}{HTML}{EEEEEE}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+	basicstyle=\normalfont\ttfamily,
+	numbers=left,
+	numberstyle=\scriptsize,
+	stepnumber=1,
+	numbersep=8pt,
+	showstringspaces=false,
+	breaklines=true,
+	frame=lines,
+	backgroundcolor=\color{background},
+	literate=
+	*{0}{{{\color{numb}0}}}{1}
+	{1}{{{\color{numb}1}}}{1}
+	{2}{{{\color{numb}2}}}{1}
+	{3}{{{\color{numb}3}}}{1}
+	{4}{{{\color{numb}4}}}{1}
+	{5}{{{\color{numb}5}}}{1}
+	{6}{{{\color{numb}6}}}{1}
+	{7}{{{\color{numb}7}}}{1}
+	{8}{{{\color{numb}8}}}{1}
+	{9}{{{\color{numb}9}}}{1}
+	{:}{{{\color{punct}{:}}}}{1}
+	{,}{{{\color{punct}{,}}}}{1}
+	{\{}{{{\color{delim}{\{}}}}{1}
+	{\}}{{{\color{delim}{\}}}}}{1}
+	{[}{{{\color{delim}{[}}}}{1}
+	{]}{{{\color{delim}{]}}}}{1},
+}
+
+\lstdefinelanguage{docker}{
+	keywords={FROM, RUN, COPY, ADD, ENTRYPOINT, CMD,  ENV, ARG, WORKDIR, EXPOSE, LABEL, USER, VOLUME, STOPSIGNAL, ONBUILD, MAINTAINER},
+	keywordstyle=\color{blue}\bfseries,
+	identifierstyle=\color{black},
+	sensitive=false,
+	comment=[l]{\#},
+	commentstyle=\color{purple}\ttfamily,
+	stringstyle=\color{red}\ttfamily,
+	morestring=[b]',
+	morestring=[b]"
+}
+
+%% Začátek dokumentu
+%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+	
+	\pagestyle{empty}
+	\pagenumbering{arabic}
+	
+	%% Titulní stránka
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	{\fontfamily{phv}\selectfont
+		\begin{figure}[h]
+			\centering
+			\includegraphics[width=0.6\linewidth]{image/logo-skoly.png} 
+		\end{figure}
+		
+		{\bfseries 
+			\begin{center}
+				\vspace{0.025 \textheight}
+				\LARGE{ZÁVĚREČNÁ STUDIJNÍ PRÁCE}\\
+				\large{dokumentace}\\
+				\vspace{0.075 \textheight}
+				\LARGE {\nazevPrace}\\
+			\end{center}  
+		}
+		
+		\begin{figure}[h]
+			\centering
+			\includegraphics[width=0.8\linewidth]{image/logo.png} 
+		\end{figure}
+		
+		\vspace{0.02 \textheight}
+		\begin{table}[h!]
+			\begin{tabular}{ll}
+				\textbf{Autor:} & \jmenoAutora\\ 
+				\textbf{Obor:} & \kodOboru { } \obor\\
+				\textbf{} & \zamereni\\
+				\textbf{Třída:} & \trida\\
+				\textbf{Školní rok:} & \skolniRok\\
+			\end{tabular}
+			
+		\end{table}        
+	}
+	
+	\cleardoublepage 
+	
+	%% Prohlášení
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	\noindent{\large{\bfseries{Prohlášení}\\}} 
+	\noindent{Prohlašuji, že jsem závěrečnou práci vypracoval samostatně a uvedl veškeré použité 
+		informační zdroje.\\}
+	\noindent{Souhlasím, aby tato studijní práce byla použita k výukovým a prezentačním účelům na Střední průmyslové a umělecké škole v Opavě, Praskova 399/8.}
+	\vfill
+	\noindent{V Opavě \datumOdevzdani\\}
+	\noindent
+	\begin{minipage}{\linewidth}
+		\hspace{9.5cm} 
+		\begin{tabular}{@{}p{6cm}@{}}
+			\dotfill \\
+			Podpis autora
+		\end{tabular}
+	\end{minipage}
+	
+	\cleardoublepage 
+	
+	%% Abstrakt
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\noindent{\Large{\bfseries{Abstrakt (CZ)}\\}}
+	
+	\noindent Tato práce se zabývá návrhem a realizací systému pro sdílení domácích nabíječek elektromobilů, který uživatelům umožňuje zpřístupnit svou nabíječku ostatním podobně jako model Airbnb. V Česku sice není infrastruktura nabíjecích stanic kriticky nedostatečná, ale komunitní projekt tohoto typu může zvýšit jejich dostupnost, zlevnit nabíjení a urychlit návratnost domácích fotovoltaických elektráren. Existuje komunita uživatelů, kteří si nabíječky půjčují neformálně, avšak doposud se domlouvají složitě přes chatovací platformy.
+	\vspace{18pt}
+	
+	\noindent{\large{\bfseries{Klíčová slova}}}
+	
+	\noindent OCPP 1.6J, nabíjecí stanice, elektromobilita, sdílení nabíječek, RFID autorizace, FastAPI, Node.js, WebSocket server, PostgreSQL, JWT, API Key, RBAC.
+	
+	\vspace{36pt}
+	
+	%% Abstract (EN)
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\noindent{\Large{\bfseries{Abstract (EN)}}}
+	
+	\noindent This thesis focuses on the design and implementation of a system for sharing home electric vehicle chargers, allowing users to make their chargers available to others in a manner similar to the Airbnb model. Although the charging infrastructure in the Czech Republic is not critically insufficient, a community-driven project of this type can increase charger availability, reduce charging costs, and accelerate the return on investment for home photovoltaic systems. A community of users who share chargers already exists, but they currently rely on informal and inefficient coordination through chat platforms.
+	
+	\vspace{18pt}
+	
+	\noindent{\large{\bfseries{Keywords}}}
+	
+	\noindent OCPP 1.6J, charging station, electromobility, charger sharing, RFID authorization, FastAPI, Node.js, WebSocket server, PostgreSQL, JWT, API Key, RBAC.
+	
+	\cleardoublepage 
+	
+	%% Obsah
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+	
+	{
+		\setlength{\parskip}{0pt}       % Odstraní mezery mezi položkami
+		\linespread{1.2}\selectfont     % Zmenší řádkování zpět na jednoduché (jen pro obsah)
+		
+		\pagestyle{plain} 
+		\tableofcontents
+		\clearpage
+	}
+	
+	%% Úvod
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+	\chapter*{Úvod}
+	\addcontentsline{toc}{chapter}{Úvod}
+	
+	V posledních letech zaznamenává Česká republika, i díky dotačním titulům Evropské unie, výrazný nárůst počtu domácích fotovoltaických elektráren. Tento trend, společně s rostoucí dostupností elektromobilů a tlakem na snižování provozních nákladů, vedl k masivnímu rozšíření privátní nabíjecí infrastruktury. Tyto domácí nabíjecí body (wallboxy) však zůstávají po většinu času nevyužité, jelikož slouží primárně pouze pro potřeby majitele nemovitosti.
+	
+	Sdílení těchto soukromých nabíječek by přineslo benefity všem stranám: majitelům by zkrátilo návratnost investice do fotovoltaiky a wallboxu, a zároveň by došlo k efektivnímu zahuštění sítě nabíjecích stanic, která je v tuzemsku stále nedostatečná.
+	
+	V současnosti je trh se sdílením privátních nabíječek roztříštěný. Existují neformální komunity na sociálních sítích, kde je domluva zdlouhavá a manuální, nebo komerční projekty (např. evmapa.cz či goplugable.com), které jsou však často administrativně náročné, vyžadují specifický hardware nebo cílí primárně na firemní klientelu.
+	
+	Cílem této práce je navrhnout a implementovat otevřený systém, který propojí existující domácí nabíječky a zajistí jejich automatizovanou správu. Systém bude zajišťovat komunikaci se stanicí, autorizaci uživatelů pomocí RFID karet, řízení nabíjecího procesu a následné vyúčtování spotřebované energie. Důraz je kladen na to, aby řešení nevyžadovalo od majitelů nákup proprietárního hardware, ale využívalo standardizovaný protokol.
+	
+	\pagestyle{fancy}
+	
+	\fancypagestyle{plain}{%
+		\fancyhf{}
+		\fancyfoot[C]{\thepage}
+		\renewcommand{\headrulewidth}{0pt}
+	}
+	
+	\chapter{Výběr postupů a technologií}
+	\label{chap:technologie}
+	
+	Při návrhu architektury systému byl kladen důraz na modularitu, škálovatelnost a použití moderních, ale ověřených technologií. Systém je navržen jako sada mikroslužeb běžících v kontejnerizovaném prostředí Docker.
+	
+	\section{OCPP protokol}
+	Jako klíčový prvek komunikace mezi serverem a hardwarem nabíjecí stanice byl zvolen protokol \textbf{OCPP (Open Charge Point Protocol)} ve verzi \textbf{1.6 JSON (OCPP-J)}. 
+	Ačkoliv již existují novější specifikace (2.0.1, 2.1), verze 1.6 je v současnosti průmyslovým standardem s nejširší podporou výrobců domácích wallboxů. Použití formátu JSON namísto staršího SOAP (XML) výrazně zjednodušuje parsování zpráv a snižuje datovou náročnost, což je klíčové při komunikaci přes mobilní sítě. Pokud by měl projekt v budoucnu pokračovat, je architektura připravena na implementaci novějších verzí pro zajištění maximální kompatibility.
+	
+	\section{OCPP Backend}
+	Pro službu zajišťující přímou komunikaci s nabíječkami (CSMS - Charging Station Management System) bylo zvoleno prostředí \textbf{Node.js}. 
+	Hlavním důvodem je jeho asynchronní architektura řízená událostmi (event-driven), která je ideální pro zpracování velkého množství WebSocket spojení v reálném čase. Node.js efektivně funguje jako router, který přijímá zprávy od nabíječek, validuje je a předává relevantní data do API backendu.
+	
+	\section{API Backend}
+	Druhou částí systému je API backend, pro který byl zvolen jazyk \textbf{Python} s frameworkem \textbf{FastAPI}. 
+	Tato služba tvoří \uv{mozek} celého systému. Umožňuje OCPP backendu (a v budoucnu i dalším klientům, jako jsou webové či mobilní aplikace) komunikovat s databází a nabízí sadu nástrojů pro správu uživatelů a nabíječek. FastAPI bylo zvoleno pro svou rychlost, automatickou generaci dokumentace (Swagger UI) a striktní typovou kontrolu dat (Pydantic).
+	
+	\newpage
+	\section{Databázové systémy}
+	Architektura využívá kombinaci dvou databázových systémů pro různé typy dat:
+	\begin{itemize}
+		\item \textbf{PostgreSQL:} Slouží jako primární perzistentní úložiště pro trvalá data (uživatelé, transakce, definice nabíječek).
+		\item \textbf{Redis:} Slouží jako in-memory úložiště pro dočasná a často měněná data. Ukládají se zde například aktuální stavy konektorů nebo poslední autorizované RFID tagy pro rychlý přístup.
+	\end{itemize}
+	
+	\chapter{Analýza a návrh řešení}
+	\label{chap:navrh}
+	
+	Po výběru vhodných technologií následovala fáze detailní analýzy požadavků a návrhu architektury celého systému.
+	
+	\section{Metodika vývoje: Přechod na API-First}
+	Původním záměrem projektu bylo vytvoření kompletního \uv{Full-stack} řešení zahrnujícího jak serverovou část, tak klientskou webovou aplikaci. V průběhu analýzy a prvotních fází vývoje se však ukázalo, že komplexita protokolu OCPP a požadavky na robustnost backendu jsou natolik rozsáhlé, že by vývoj kvalitního frontendu v časovém rámci práce vedl k nutným kompromisům v kvalitě celého systému.
+	
+	Z tohoto důvodu bylo učiněno strategické rozhodnutí přejít na přístup \textbf{API-First}. Tento model klade maximální důraz na návrh a implementaci stabilního, dobře zdokumentovaného a bezpečného rozhraní (API).
+	
+	\noindent Tento přístup přináší několik výhod:
+	\begin{itemize}
+		\item \textbf{Nezávislost na klientovi:} Backend není svázán s konkrétní vizuální podobou a může v budoucnu obsluhovat web, mobilní aplikaci (iOS/Android) nebo systémy třetích stran.
+		\item \textbf{Kvalita architektury:} Umožnilo to věnovat více času klíčovým aspektům, jako je správná implementace standardu OCPP, bezpečnost a testování, namísto ladění uživatelského rozhraní.
+		\item \textbf{Škálovatelnost:} Systém je od začátku navržen modulárně, což usnadňuje jeho budoucí rozšiřování.
+	\end{itemize}
+	V rámci této práce je tedy výstupem kompletní backendová platforma, jejíž funkčnost je demonstrována a testována prostřednictvím dokumentovaných API endpointů.
+	
+	\newpage
+	
+	\section{Architektura systému}
+	Systém je navržen jako sada mikroslužeb běžících v oddělených kontejnerech, což zajišťuje modularitu a snadnou údržbu. Komunikace uvnitř systému probíhá ve třech rovinách:
+	
+	\begin{enumerate}
+		\item \textbf{Komunikace s hardwarem (WebSocket):} Fyzické stanice udržují trvalé spojení se službou \texttt{ocpp-backend} (Node.js). Zprávy protokolu OCPP jsou přenášeny v reálném čase formátem JSON, což vyžaduje, aby tato služba byla stavová (stateful).
+		
+		\item \textbf{Interní komunikace (REST API):} Logiku požadavků řeší služba \texttt{fastapi-backend} (Python). Node.js server se jí dotazuje pomocí synchronních HTTP požadavků (např. při autorizaci karty). Tato komunikace je izolována v privátní síti a chráněna API klíčem.
+		
+		\item \textbf{Datová vrstva:} Aplikační jádro využívá \textbf{PostgreSQL} pro trvalé uložení uživatelských dat a historie transakcí. Pro sdílení aktuálního stavu konektorů (pro potřeby frontendové mapy) se využívá rychlá in-memory databáze \textbf{Redis}.
+		
+		\item \textbf{Externí přístup (Public API):} Klientské aplikace přistupují k systému skrze veřejné REST rozhraní služby \texttt{fastapi-backend}. Tato komunikace je na rozdíl od interního provozu zabezpečena pomocí \textbf{JWT tokenů} (OAuth2 standard). Slouží pro autentizaci uživatelů, správu jejich nabíječek a zobrazování historie nabíjení.
+	\end{enumerate}
+	
+	\noindent Schéma na obrázku \ref{fig:architecture} vizualizuje tyto toky dat a oddělení veřejné části od privátní infrastruktury.
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=\textwidth]{image/system-architecture.png}
+		\caption{Architektura systému a komunikace mikroslužeb}
+		\label{fig:architecture}
+	\end{figure}
+	
+	\newpage
+	
+	\section{Funkční požadavky (Use Case)}
+	Pro ujasnění interakcí mezi uživateli a systémem byl vytvořen diagram případů užití (Use Case Diagram), který zachycuje \textbf{cílový stav celého systému}. Diagram slouží jako plán pro kompletní funkcionalitu platformy.
+	
+	V rámci této práce a realizovaného prototypu byly implementovány nejdůležitější případy užití (tzv. Core Features) nezbytné pro prokázání funkčnosti konceptu:
+	\begin{itemize}
+		\item \textbf{Nepřihlášený uživatel:} Zobrazení mapy nabíječek, možnost registrace
+		\item \textbf{Registrovaný uživatel:} Přihlášení, správa účtu a vlastních nabíječek, autorizace pomocí RFID a prohlížení historie nabíjení,
+		\item \textbf{Administrátor:} Monitorování a technická správa systému.
+	\end{itemize}
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=\textwidth]{image/use-case-diagram.png}
+		\caption{Diagram případů užití (návrh celého systému)}
+		\label{fig:usecase}
+	\end{figure}
+	
+	\newpage
+	
+	\section{Datový model}
+	Návrh databáze vychází z požadavků na evidenci uživatelů, nabíječek a historie nabíjení. Jako relační databázový systém byl zvolen PostgreSQL. Při návrhu schématu byl kladen důraz na zachování datové integrity a historie. U klíčových entit je proto implementován mechanismus tzv. Soft Delete. Místo odstranění záznamů dochází pouze k jejich deaktivaci (nastavení příznaku \texttt{is\_active} na \texttt{false}). Tím je zajištěno, že smazáním uživatele nebo nabíječky nedojde ke ztrátě vazeb na již proběhlé transakce a statistiky.
+	
+	Klíčové entity systému jsou:
+	\begin{itemize}
+		\item \textbf{Users:} Ukládá přihlašovací údaje, role a zůstatky uživatelů.
+		\item \textbf{Chargers \& Connectors:} Definují fyzické nabíjecí stanice a jejich konektory. Každá nabíječka má unikátní \texttt{ocpp\_id}, který slouží k identifikaci v síti.
+		\item \textbf{RFID Cards:} Tabulka čipů pro autorizaci, vazba na uživatele (Owner).
+		\item \textbf{Charge Logs:} Záznamy o proběhlých transakcích (kdo, kde, kolik kWh, čas startu a konce).
+	\end{itemize}
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=\textwidth]{image/database-diagram.png}
+		\caption{Entitně-relační diagram (ERD) databáze}
+		\label{fig:erd}
+	\end{figure}
+	
+	
+	\chapter{Vývojové a provozní prostředí}
+	\section{Adresářová struktura projektu}
+	Celý projekt je organizován jako tzv. \textbf{monorepo} (monolitický repozitář), což znamená, že zdrojové kódy všech mikroslužeb, dokumentace i konfigurační soubory pro nasazení jsou udržovány na jednom místě. Toto uspořádání zjednodušuje správu verzí a sdílení znalostí napříč projektem.
+	
+	Níže je uveden zjednodušený výpis adresářové struktury s popisem klíčových částí:
+	
+	\begin{lstlisting}[
+		basicstyle=\ttfamily\footnotesize, 
+		frame=single, 
+		captionpos=b, 
+		caption={Adresářová struktura projektu (vybrané soubory)},
+		literate={á}{{\'a}}1 {č}{{\v{c}}}1 {ď}{{\v{d}}}1 {é}{{\'e}}1 {ě}{{\v{e}}}1 {í}{{\'i}}1 {ň}{{\v{n}}}1 {ó}{{\'o}}1 {ř}{{\v{r}}}1 {š}{{\v{s}}}1 {ť}{{\v{t}}}1 {ú}{{\'u}}1 {ů}{{\r{u}}}1 {ý}{{\'y}}1 {ž}{{\v{z}}}1 {Á}{{\'A}}1 {Č}{{\v{C}}}1 {Ď}{{\v{D}}}1 {É}{{\'E}}1 {Ě}{{\v{E}}}1 {Í}{{\'I}}1 {Ň}{{\v{N}}}1 {Ó}{{\'O}}1 {Ř}{{\v{R}}}1 {Š}{{\v{S}}}1 {Ť}{{\v{T}}}1 {Ú}{{\'U}}1 {Ů}{{\r{U}}}1 {Ý}{{\'Y}}1 {Ž}{{\v{Z}}}1
+		]
+|-- docker-compose.yaml       # Orchestrace pro produkci
+|-- docker-compose.dev.yaml   # Orchestrace pro vývoj
+|-- README.md                 # Obsahuje návod ke spuštění aplikace
+|-- docs/                     # Dokumentace a diagramy
++-- fastapi-backend/          # API Server (Python)
+|   |-- Dockerfile            # Image pro produkci
+|   |-- Dockerfile.dev        # Image pro vývoj (hot-reload)
+|   |-- alembic/              # Migrace databáze
+|   +-- app/
+|       |-- main.py           # Vstupní bod, init DB, CORS
+|       |-- api/v1/           # Routery a endpointy
+|       |-- core/             # Konfigurace, security
+|       |-- db/               # Schéma DB
+|       |-- models/           # SQLAlchemy modely
+|       +-- services/         # Logika endpointů
++-- ocpp-backend/             # OCPP Server (Node.js)
+|   |-- Dockerfile            # Image pro produkci
+|   |-- Dockerfile.dev        # Image pro vývoj (hot-reload)
+|   +-- src/
+|       |-- index.js          # WebSocket server, handshake
+|       |-- router.js         # Směrování OCPP zpráv
+|       |-- handlers/         # Logika handlerů (Boot, Heartbeat...)
+|       |-- schemas/          # Schémata pro validaci JSON payloadů
+	\end{lstlisting}
+	
+	
+	Struktura je rozdělena do tří hlavních kořenových adresářů:
+	\begin{itemize}
+		\item \textbf{\texttt{fastapi-backend}:} Obsahuje veškerou logiku API serveru. Vnitřní členění odpovídá vrstvené architektuře (API $\rightarrow$ Services $\rightarrow$ Models).
+		\item \textbf{\texttt{ocpp-backend}:} Obsahuje implementaci WebSocket serveru v Node.js. Složka \texttt{schemas} obsahuje oficiální JSON definice protokolu OCPP, které slouží k validaci příchozích a odchozích zpráv.
+		\item \textbf{\texttt{docs}:} Slouží jako centrální úložiště pro technickou dokumentaci, specifikace protokolu a jednotlivých diagramů.
+	\end{itemize}
+	
+	
+	\section{Kontejnerizace a orchestrace služeb}
+	Aby bylo zajištěno konzistentní prostředí pro běh aplikace na lokálním počítači vývojáře i na produkčním serveru, je celý systém kontejnerizován pomocí technologie Docker. Architektura je navržena tak, aby striktně oddělovala vývojový a produkční režim.
+	
+	\subsection{Strategie sestavování obrazů (Dockerfiles)}
+	Pro každou mikroslužbu (FastAPI i Node.js) existují dva typy definic pro sestavení obrazu.
+	
+	\subsubsection{Produkční prostředí (Multi-stage build)}
+	Pro nasazení aplikace je kladen důraz na bezpečnost a minimalizaci velikosti výsledného obrazu. Využívá se technika \textit{Multi-stage builds}.
+	V první fázi (Builder) se nainstalují kompilátory a sestaví se závislosti. Do druhé, finální fáze (Runner), se zkopírují pouze výsledné artefakty a nutné knihovny. Tím se zmenší velikost obrazu z stovek megabajtů na desítky a v kontejneru nezůstávají zbytečné nástroje, které by mohl útočník zneužít.
+	
+	\subsubsection{Vývojové prostředí (Hot-reloading)}
+	Vývojová verze (Dockerfile.dev) je naopak optimalizována pro pohodlí programátora. Neobsahuje optimalizace velikosti, ale instaluje nástroje pro ladění. Klíčovým prvkem je tzv. hot-reloading. To znamená, že proces sleduje změny v souborech a při uložení kódu automaticky restartuje server, což výrazně zrychluje vývoj.
+	
+	\subsection{Orchestrace pomocí Docker Compose}
+	Jelikož se systém skládá ze čtyř služeb (API, OCPP Server, PostgreSQL, Redis), je pro jejich správu použit nástroj Docker Compose. Konfigurace je rozdělena do vrstev:
+	
+	\begin{enumerate}
+		\item \textbf{\texttt{docker-compose.yaml} (Base/Prod):} Definuje základní služby, sítě a produkční nastavení. Služby komunikují výhradně po interní Docker síti a databáze nevystavuje porty do internetu.
+		\item \textbf{\texttt{docker-compose.dev.yaml} (Override):} Tento soubor se používá pouze při lokálním vývoji a přepisuje nastavení produkce.
+	\end{enumerate}
+	
+	\newpage
+	Hlavní rozdíly v konfiguraci ukazuje následující tabulka:
+	
+	\begin{table}[h]
+		\centering
+		\rowcolors{2}{white}{gray!15}
+		\begin{tabular}{@{}lp{6cm}p{6cm}@{}}
+			\toprule
+			\textbf{Aspekt konfigurace} & \textbf{Vývojové prostředí (Dev)} & \textbf{Produkční prostředí (Prod)} \\ \midrule
+			\textbf{Zdrojový kód} & Dynamické připojení (Bind Mount) & Statický obraz (Immutable Build) \\
+			\textbf{Síťová expozice} & Porty databází mapovány na hosta (localhost) & Databázové porty izolované v interní síti (Internal Only) \\
+			\textbf{Strategie běhu} & Hot-reloading (sledování změn) & Restart Policy: Always \\
+			\textbf{Úroveň logování} & Debug (vysoká granularita) & Info / Warning (minimalizace I/O) \\
+			\textbf{Správa závislostí} & Flexibilní z definičních souborů \newline (\texttt{pyproject.toml}, \texttt{package.json}) & Deterministická ze zámků \newline (\texttt{uv.lock}, \texttt{package-lock.json}) \\ \bottomrule
+		\end{tabular}
+		\caption{Srovnání konfigurace vývojového a produkčního prostředí}
+		\label{tab:docker-env-diff}
+	\end{table}
+	
+	\section{Logování a diagnostika}
+	Vzhledem k tomu, že je systém rozdělen do více nezávislých kontejnerů, nebylo možné spoléhat na jednoduché ladění a výpisy chyb v reálném čase. Z toho důvodu byl robustní logovací mechanismus implementován jako jedna z prvních komponent celého systému, ještě před samotnou logikou protokolu OCPP.
+	
+	V kontejnerizovaném prostředí je logování řešeno standardizovaným výstupem do proudů \texttt{stdout} a \texttt{stderr}. Docker tyto proudy zachytává a umožňuje jejich centralizované zobrazení příkazem \texttt{docker logs}, případně jejich agregaci externími nástroji.
+	
+	Implementace konzistentního logování přinesla během vývoje několik klíčových výhod:
+	\begin{itemize}
+		\item \textbf{Sledovatelnost (Traceability):} Každý logovací záznam obsahuje časové razítko a identifikátor služby. Díky tomu lze snadno rekonstruovat tok požadavku – od přijetí zprávy na Node.js serveru, přes její zpracování, až po zavolání Python API a uložení do databáze.
+		\item \textbf{Úrovně závažnosti (Log Levels):} Systém rozlišuje úrovně \texttt{DEBUG}, \texttt{INFO}, \texttt{WARNING} a \texttt{ERROR}. Ve vývojovém prostředí je zapnuta úroveň \texttt{DEBUG}, která vypisuje detailní obsah všech přenášených JSON zpráv. To bylo neocenitelné při ladění komunikace s hardwarem, kdy i malá odchylka v syntaxi OCPP zprávy může způsobit odmítnutí spojení.
+	\end{itemize}
+	
+	Tento přístup umožnil rychle odhalit chyby v integraci mezi mikroslužbami, které by jinak zůstaly skryté nebo by se projevovaly pouze nestandardním chováním připojených nabíječek.
+	
+	\chapter{OCPP Backend}
+	\label{chap:ocpp_logika}
+	
+	Tato kapitola detailně rozebírá logiku jednotlivých procesů, které probíhají na pozadí komunikace mezi nabíjecí stanicí a serverem. Implementace pokrývá profil \textit{Core}, který je nezbytný pro základní fungování nabíjení, autorizaci a sběr telemetrických dat.
+	
+	Backend je navržen tak, aby reagoval na události (Event-driven). Každá příchozí zpráva spustí specifickou rutinu (handler), která provede validaci dat, komunikaci s databází a následně odešle standardizovanou odpověď zpět do nabíjecí stanice.
+	
+	\section{Automatické načítání handlerů a schémat}
+	Pro zajištění snadné rozšiřitelnosti serveru byl implementován mechanismus automatického načítání modulů (Auto-loading).
+	
+	Při startu aplikace server proskenuje adresáře \texttt{src/handlers} a \texttt{schemas}. Pokud nalezne soubor, jehož název odpovídá názvu OCPP akce (např. \texttt{BootNotification.js}), automaticky jej importuje a zaregistruje do směrovací logiky.
+	
+	Tento přístup výrazně zefektivňuje vývoj. Pokud chce programátor přidat podporu pro novou zprávu, stačí mu vytvořit jediný soubor se správným názvem. Odpadá nutnost manuální registrace importů v hlavním souboru aplikace, což eliminuje riziko chyb a udržuje kód routeru čistý a obecný.
+	
+	\begin{lstlisting}[
+		basicstyle=\ttfamily\footnotesize, 
+		frame=single, 
+		captionpos=b, 
+		caption={Část implementace dynamického načítání handlerů (src/utils/handlerLoader.js)},
+		label={lst:handler_loader},
+		literate={á}{{\'a}}1 {č}{{\v{c}}}1 {ř}{{\v{r}}}1 {ě}{{\v{e}}}1 {ň}{{\v{n}}}1 {š}{{\v{s}}}1 {ů}{{\r{u}}}1 {ý}{{\'y}}1 {ž}{{\v{z}}}1 {í}{{\'i}}1
+		]
+...
+export async function loadHandlers() {
+	const handlersDir = path.join(process.cwd(), "src/handlers");
+	const files = fs.readdirSync(handlersDir);
+	const handlers = {};
+	for (const file of files) {
+		if (!file.endsWith(".js")) continue;
+		const name = path.basename(file, ".js");
+		const modulePath = path.join(handlersDir, file);
+		// Dynamicky import modulu
+		const handlerModule = await import(modulePath);
+		// Ulozeni handleru do mapy. Ocekavame 'export default'
+		handlers[name] = handlerModule.default;
+	}
+... }
+	\end{lstlisting}
+	
+	\newpage
+	
+	\section{Handshake a BootNotification}
+	
+	\begin{itemize}
+		\item \textbf{Trigger:} Start zařízení.
+		\item \textbf{Obsah zprávy:} Identifikace výrobce (\texttt{chargePointVendor}), model (\texttt{chargePointModel}) a verze firmwaru.
+		\item \textbf{Logika serveru:} 
+		Server nejprve extrahuje unikátní identifikátor nabíječky z URL spojení. Následně ověří v databázi, zda je toto zařízení v systému registrováno a zda má příznak \texttt{is\_active}. Pokud je zařízení neznámé nebo blokované, server vrátí status \texttt{Rejected}, čímž nabíječce zakáže další komunikaci.
+		\item \textbf{Odpověď:} V případě úspěšného ověření server vrací status \texttt{Accepted}, aktuální serverový čas (pro synchronizaci hodin nabíječky) a interval pro zasílání zpráv Heartbeat.
+	\end{itemize}
+	
+	\section{StatusNotification (Stav a detekce konektorů)}
+	Pomocí této zprávy nabíječka informuje centrální systém o změně svého stavu nebo o stavu konkrétního konektoru. To umožňuje systému zobrazovat uživatelům v reálném čase, zda je nabíječka volná.
+	
+	\begin{itemize}
+		\item \textbf{Trigger:} Připojení kabelu, porucha, uvolnění konektoru.
+		\item \textbf{Klíčové stavy:} \texttt{Available} (volno), \texttt{Preparing} (kabel připojen, čeká na autorizaci), \texttt{Charging} (nabíjí), \texttt{Faulted} (chyba).
+		\item \textbf{Funkce Autodiscovery:} 
+		Systém využívá tuto zprávu k automatické detekci konfigurace stanice. Pokud server obdrží notifikaci od konektoru, který v databázi dosud neexistuje (např. konektor č. 2 na nové stanici), automaticky ho v systému vytvoří. To výrazně zjednodušuje proces nasazování nových stanic, protože správce nemusí ručně definovat počet konektorů.
+	\end{itemize}
+	
+	\newpage
+	
+	\section{Authorize (Ověření uživatele)}
+	Před zahájením nabíjení musí uživatel prokázat svou totožnost, obvykle přiložením RFID karty nebo čipu.
+	
+	\begin{itemize}
+		\item \textbf{Trigger:} Přiložení RFID tagu ke čtečce.
+		\item \textbf{Obsah zprávy:} Unikátní identifikátor tagu (\texttt{idTag}).
+		\item \textbf{Logika serveru:} 
+		Server provádí dotaz do databáze uživatelů. Kontrolují se tři podmínky:
+		\begin{enumerate}
+			\item Existuje daný RFID tag v systému?
+			\item Je svázán s aktivním uživatelským účtem?
+			\item Je tag aktivní (pole \texttt{is\_active})?
+		\end{enumerate}
+		\item \textbf{Odpověď:} Výsledkem je status autorizace. Pokud je \texttt{Accepted}, nabíječka odblokuje konektor a připraví se k dodávce energie. V opačném případě (\texttt{Invalid}, \texttt{Blocked}) zůstane konektor uzamčen.
+	\end{itemize}
+	
+	\section{StartTransaction (Zahájení nabíjení)}
+	Toto je kritická zpráva, která iniciuje tok energie a začátek účtovacího období.
+	
+	\begin{itemize}
+		\item \textbf{Trigger:} Úspěšná autorizace a následné připojení kabelu (nebo naopak).
+		\item \textbf{Obsah zprávy:} Číslo konektoru, použitý RFID tag a aktuální stav elektroměru (\texttt{meterStart}) ve Wh.
+		\item \textbf{Logika serveru:} 
+		Server vytvoří nový záznam v tabulce transakcí (\texttt{ChargeLogs}). Záznamu je přiděleno unikátní \texttt{transactionId}, které server vrátí nabíječce. Toto ID je klíčové, protože v budoucnu spáruje ukončení nabíjení se správným začátkem. Pokud by se zápis do databáze nezdařil, server transakci odmítne a nabíjení nezačne.
+	\end{itemize}
+	
+	\newpage
+	
+	\section{MeterValues (Průběh a telemetrie)}
+	Během aktivní transakce nabíječka periodicky odesílá data o průběhu nabíjení.
+	
+	\begin{itemize}
+		\item \textbf{Trigger:} Uplynutí nastaveného intervalu nebo změna odebíraného výkonu o definovanou hodnotu.
+		\item \textbf{Obsah zprávy:} Telemetrická data, typicky napětí (V), proud (A), aktuální výkon (W) a teplota.
+		\item \textbf{Využití dat:} Poslední zaslanou hodnotu lze využít jako zálohu v případě výpadku komunikace, kdy stanice neodešle zprávu \texttt{StopTransaction}. Systém v takové situaci po uplynutí ochranné lhůty transakci automaticky ukončí a pro finální vyúčtování použije poslední známý stav elektroměru z \texttt{MeterValues}.
+	\end{itemize}
+	
+	\section{StopTransaction (Ukončení a vyúčtování)}
+	Zpráva ukončující nabíjecí relaci. Na jejím základě dochází k finančnímu vyrovnání.
+	
+	\begin{itemize}
+		\item \textbf{Trigger:} Odpojení kabelu, opětovné přiložení karty nebo dálkový příkaz.
+		\item \textbf{Obsah zprávy:} Konečný stav elektroměru (\texttt{meterStop}), ID transakce a důvod ukončení.
+		\item \textbf{Logika vyúčtování:}
+		Server vyhledá otevřenou transakci podle ID. Následně vypočítá celkovou spotřebovanou energii jako rozdíl mezi koncovým a počátečním stavem elektroměru:
+		$$ E_{total} = \text{meterStop} - \text{meterStart} $$
+		Výsledná hodnota je uložena do historie a transakce je označena jako ukončená. Na základě tarifu nabíječky je následně vypočítána cena, která je stržena z kreditu uživatele.
+	\end{itemize}
+	
+	
+	\chapter{API Backend (FastAPI)}
+	\label{chap:api_backend}
+	
+	Zatímco předchozí kapitola popisovala komunikaci s hardwarem, tato část se věnuje centrálnímu bodu celé architektury – REST API serveru. Ten byl implementován v jazyce Python s využitím moderního asynchronního frameworku \textbf{FastAPI}.
+	
+	Tato služba plní roli aplikačního jádra. Zajišťuje perzistenci dat do databáze PostgreSQL, komunikaci s cache systémem Redis a poskytuje rozhraní jak pro interní potřeby OCPP serveru, tak případně pro klientské aplikace (frontend).
+	
+	\section{Architektura a organizace kódu}
+	Pro zajištění udržitelnosti a testovatelnosti kódu byl využit návrhový vzor \textbf{Dependency Injection} (vstřikování závislostí).
+	
+	\subsection{Sdílené závislosti (Dependencies)}
+	Veškeré opakující se logické celky jsou vyčleněny do modulu \texttt{app/api/v1/deps.py}. FastAPI tyto závislosti automaticky „vstřikuje“ do jednotlivých endpointů, které je vyžadují.
+	Klíčové závislosti zahrnují:
+	\begin{itemize}
+		\item \texttt{get\_db}: Zajišťuje, že každý požadavek dostane vlastní izolovanou relaci s databází, která je po dokončení požadavku automaticky uzavřena.
+		\item \texttt{get\_current\_user}: Zpracovává bezpečnostní token z hlavičky požadavku, ověřuje jeho podpis a načítá data uživatele.
+		\item \texttt{verify\_api\_key}: Slouží k ověření interních požadavků od jiných mikroslužeb.
+	\end{itemize}
+	
+	\subsection{Datová integrita (Enums a Pydantic)}
+	Aby se předešlo chybám v datech, systém striktně využívá typovou kontrolu.
+	\begin{itemize}
+		\item \textbf{Enums:} Hodnoty, které mohou nabývat jen omezené množiny stavů (např. role uživatele \texttt{admin/user} nebo typ konektoru \texttt{Type2/CCS}), jsou definovány jako výčtové typy v souboru \texttt{enums.py}.
+		\item \textbf{Pydantic modely:} Všechna vstupní i výstupní data jsou validována knihovnou Pydantic. Pokud klient pošle data ve špatném formátu (např. chybějící e-mail při registraci), API automaticky vrátí detailní chybovou hlášku \texttt{422 Unprocessable Entity}, aniž by se spustila logika aplikace.
+	\end{itemize}
+	
+	\section{Bezpečnost a autentizace}
+	Bezpečnostní model aplikace je navržen s ohledem na dva odlišné typy klientů API.
+	
+	\subsection{OAuth2 a JWT (Pro uživatele)}
+	Pro autentizaci koncových uživatelů (lidí) je využit standardní protokol \textbf{OAuth2} s Bearer tokeny.
+	Po úspěšném přihlášení (verifikaci hesla pomocí \texttt{bcrypt}) server vygeneruje \textbf{JWT (JSON Web Token)}. Tento token je podepsán tajným klíčem serveru a obsahuje ID uživatele a dobu platnosti. Díky tomu je API \textit{bezstavové} (stateless) – server si nemusí pamatovat přihlášené uživatele v paměti RAM, což usnadňuje škálování.
+	
+	\subsection{API Key (Pro OCPP Server)}
+	Komunikace mezi Node.js serverem (OCPP) a Python API (FastAPI) probíhá na pozadí (Machine-to-Machine). Použití expirovaných JWT tokenů by zde bylo nepraktické a náchylné k chybám při obnovování.
+	Místo toho je pro interní komunikaci zavedena autentizace pomocí statického \textbf{API klíče}, který se přenáší v hlavičce \texttt{X-API-Key}. Tento klíč je sdílen pouze mezi kontejnery uvnitř zabezpečené Docker sítě.
+	
+	\section{Rozdělení API (Endpoints)}
+	API je logicky rozděleno do dvou sekcí, které odpovídají výše zmíněným bezpečnostním modelům - interní (OCPP server) a veřejné.
+	
+	\subsection{Veřejné API (User-facing)}
+	Tyto endpointy jsou určeny pro frontendovou aplikaci a uživatele. Implementují \textbf{RBAC (Role-Based Access Control)} – řízení přístupu na základě rolí.
+	Typickým příkladem je správa uživatelů (\texttt{user.py}):
+	\begin{itemize}
+		\item \textbf{Nepřihlášený uživatel:} Může volat pouze endpoint pro registraci a přihlášení.
+		\item \textbf{Běžný uživatel:} Může číst a upravovat pouze svůj vlastní profil.
+		\item \textbf{Administrátor:} Má plná práva pro výpis, úpravu i mazání všech uživatelů v systému.
+	\end{itemize}
+	
+	\subsection{Interní API (Service-to-Service)}
+	Modul \texttt{internal.py} obsahuje endpointy, které slouží výhradně pro potřeby OCPP serveru. Tyto cesty nejsou veřejně dokumentovány ve Swagger UI a jsou chráněny API klíčem.
+	Právě tyto endpointy vykonávají databázové operace, které byly teoreticky popsány v předchozí kapitole o OCPP logice:
+	\begin{itemize}
+		\item \texttt{POST /internal/boot-notification}: Ověřuje existenci nabíječky při startu.
+		\item \texttt{POST /internal/authorize}: Kontroluje validitu RFID karty.
+		\item \texttt{POST /internal/transaction/start}: Zakládá záznam o nabíjení a vrací ID transakce.
+		\item \texttt{POST /internal/connector-status}: Aktualizuje stav v Redisu pro zobrazení na mapě.
+	\end{itemize}
+	
+	Tímto rozdělením je zajištěno, že kritické operace systému jsou odděleny od běžné uživatelské interakce, což zvyšuje bezpečnost celého řešení.
+	
+	\chapter{Životní cyklus aplikace v praxi}
+	\label{chap:lifecycle}
+	
+	Tato kapitola stručně shrnuje integraci všech vytvořených komponent (OCPP server, API, Databáze) na příkladu typického scénáře použití systému.
+	
+	\section{Příprava (Onboarding)}
+	Proces začíná registrací. Majitel nabíječky si vytvoří účet přes API, zaregistruje své zařízení a server mu vygeneruje \texttt{ocpp\_id}.
+	Tyto údaje zadá do nastavení nabíječky.
+	
+	\section{Inicializace (Booting)}
+	Uživatel toto ID zadá do konfigurace nabíječky spolu s adresou serveru.
+	\begin{enumerate}
+		\item  Jakmile nabíječka nastartuje, pošle žádost o Websocket spojení.
+		\item Node.js server se dotáže Python API: \uv{Existuje toto zařízení?}. API odpoví ano a OCPP server povolí spojení.
+		\item Nabíječka pošle \texttt{BootNotification}. OCPP server předá obsah API a to doplní metadata o nabíječce do databáze.
+		\item Nabíječka pošle sérii \texttt{StatusNotification} pro své konektory. Systém díky funkci \textit{Autodiscovery} automaticky vytvoří entity konektorů v databázi.
+		\item Uživatel si ke konektorům doplní jejich maximální výkon a cenu.
+	\end{enumerate}
+	Nyní je nabíječka viditelná v API jako \uv{Dostupná}.
+	
+	\section{Průběh nabíjení}
+	\begin{enumerate}
+		\item \textbf{Připojení kabelu}: Po připojení kabelu pošle nabíječka \texttt{StatusNotification}. Server zapíše změnu stavu do Redis databáze. Nabíječka vyčkává na ověření karty.
+		\item \textbf{Autorizace:} Řidič přiloží RFID kartu. Nabíječka pošle \texttt{Authorize}. Server ověří kartu. Pokud je vše v pořádku, odpoví \texttt{Accepted}. Pokud karta v systému neexistuje pošle \texttt{Invalid}, nebo \texttt{Blocked} pokud má \texttt{is\_active} hodnotu \texttt{False}. 
+		\item \textbf{Průběh:} Každou minutu chodí \texttt{MeterValues} (napětí, proud). Tato data se ukládají pro analytiku, nebo pro případ výpadku komunikace.
+		\item \textbf{Konec:} Řidič odpojí kabel. Nabíječka pošle \texttt{StopTransaction}.
+	\end{enumerate}
+	
+	\section{Vyúčtování}
+	Okamžitě po přijetí \texttt{StopTransaction} API server vypočítá celkovou dodanou energii. Na základě nastavené ceny za kWh se vypočte finální částka, která je stržena z virtuální peněženky řidiče a připsána majiteli stanice. Konektor se přepne zpět do stavu \uv{Dostupný}.
+	
+	\chapter{Testování a validace systému}
+	\label{chap:testovani}
+	
+	Vzhledem k distribuované povaze systému a závislosti na externím hardwaru probíhalo ověřování funkčnosti ve dvou fázích. Prvním krokem bylo testování proti softwarovým simulátorům a druhou fází byla integrace s reálnou domácí nabíjecí stanicí.
+	
+	\section{Validace pomocí simulátorů}
+	Pro ověření správnosti implementace serverové logiky (OCPP Backend i API) byly využity nástroje vyvinuté komunitou okolo protokolu OCPP. Použití více různých simulátorů zajistilo, že implementace není \uv{ušita na míru} jednomu klientovi, ale je univerzální.
+	
+	K testování byly využity následující nástroje:
+	\begin{enumerate}
+		\item \textbf{OCPP CP Simulator} (autor \textit{shiv3})\footnote{Dostupné z: \url{https://github.com/shiv3/ocpp-cp-simulator}}: Webový nástroj k jednoduchému přepínání stavů konektoru, \texttt{StartTransaction}, \texttt{MeterValues} a \texttt{StopTransaction}.
+		\item \textbf{OCPP Virtual Charge Point} (autor \textit{solidstudiosh})\footnote{Dostupné z: \url{https://github.com/solidstudiosh/ocpp-virtual-charge-point}}: Komplexnější terminálový simulátor, který umožňuje větší kontrolu na posílanými zprávami.
+	\end{enumerate}
+	
+	V prostředí těchto simulátorů systém fungoval bezchybně. Byly úspěšně ověřeny scénáře tzv. \textit{Happy Path}:
+	\begin{itemize}
+		\item Připojení stanice a handshake (BootNotification).
+		\item Ověření RFID tagu v databázi (Authorize).
+		\item Správné založení transakce při startu nabíjení (StartTransaction).
+		\item Příjem a ukládání průběžných měření (MeterValues).
+		\item Korektní ukončení a vyúčtování transakce (StopTransaction).
+	\end{itemize}
+	
+	Tyto testy potvrdily, že aplikační logika backendu je implementována v souladu se specifikací OCPP 1.6J.
+	
+	\section{Testování s reálným hardwarem}
+	Pro ověření v reálném provozu byla využita domácí nabíjecí stanice. Cílem bylo potvrdit, že systém dokáže komunikovat i s fyzickým zařízením a řídit tok energie.
+	
+	\subsection{Průběh integrace}
+	Stanice byla nakonfigurována pro komunikaci s lokálně běžícím serverem. Následné testy prokázaly funkčnost komunikačního kanálu a správnou implementaci stavového automatu:
+	\begin{itemize}
+		\item \textbf{Konektivita:} Stanice úspěšně navázala WebSocket spojení.
+		\item \textbf{Registrace:} Server správně identifikoval zařízení a přijal \texttt{BootNotification}.
+		\item \textbf{Autorizace:} Po přiložení RFID čipu stanice odeslala požadavek \texttt{Authorize}, který server ověřil v databázi a vrátil kladnou odpověď (\texttt{Accepted}).
+		\item \textbf{Start transakce:} Stanice úspěšně zareagovala na autorizaci a odeslala zprávu \texttt{StartTransaction}. Server tuto zprávu zpracoval, založil záznam v databázi a vrátil unikátní \texttt{transactionId}.
+	\end{itemize}
+	
+\subsection{Zjištěná specifika hardwaru}
+I přes korektní průběh komunikační sekvence a potvrzení \texttt{StartTransaction} nedošlo u testované stanice k sepnutí silových prvků. Zařízení po 15 sekundách ukončilo relaci zprávou \texttt{StopTransaction}.
+
+Toto chování naznačuje, že ačkoliv je serverová logika validní (ověřeno simulátory), firmware stanice vyžaduje pro fyzické sepnutí specifické podmínky (např. stav konektoru nebo uzamčení kabelu), případně očekává nestandardní parametry v odpovědi serveru.
+
+\section{Závěr testování}
+Testy na dvou nezávislých simulátorech potvrdily, že backend je plně funkční a dodržuje standard OCPP 1.6J. Specifické chování testovaného fyzického zařízení poukazuje na známou fragmentaci implementací protokolu mezi výrobci hardwaru.
+
+Pro případné produkční nasazení by proto bylo nutné:
+\begin{itemize}
+	\item \textbf{Rozšířit testování} na portfolio stanic různých výrobců (např. Alfen, Keba).
+	\item \textbf{Zavést konfigurační profily}, které by dynamicky upravovaly parametry komunikace podle typu připojeného zařízení.
+\end{itemize}
+	
+	\chapter*{Závěr}
+	\addcontentsline{toc}{chapter}{Závěr}
+	
+	Cílem této práce byl návrh a implementace backendového systému pro sdílení soukromých nabíjecích stanic elektromobilů. Výsledkem je funkční prototyp postavený na architektuře mikroslužeb, který využívá Node.js pro komunikaci přes protokol OCPP 1.6J a Python (FastAPI) pro správu dat. Práce ověřila, že otevřený standard OCPP umožňuje centrální řízení nabíječek nezávisle na jejich výrobci.
+	
+	Během realizace došlo k odchýlení od původního návrhu v oblasti orchestrace síťového provozu. Původně bylo plánováno nasazení moderní reverse proxy Traefik pro automatické směrování kontejnerů. Protože však byl systém nasazován na server, kde již běžel webový server Apache obsluhující jiné služby, ukázalo se jako efektivnější využít stávající infrastrukturu. Namísto nasazení další vrstvy v podobě Traefiku bylo směrování na veřejné porty serveru. Toto rozhodnutí zjednodušilo správu serveru a eliminovalo konflikty na portech 80 a 443.
+	
+	Vytvořené řešení v současné podobě pokrývá serverovou část systému – registraci, autorizaci, nabíjení i transakce. Pro komerční nasazení by bylo nutné systém rozšířit o uživatelské rozhraní (webovou a mobilní aplikaci) a provést širší testování kompatibility s různými typy fyzických nabíječek.
+	
+	Potenciál pro další rozvoj vidím v integraci s domácí energetikou. Backend je připraven na implementaci dynamického řízení výkonu (Dynamic Load Management) na základě dat z fotovoltaické elektrárny, což by umožnilo čistě solární nabíjení.
+	
+	Kompletní implementace aplikace je publikována v repozitáři na službě GitHub\footnote{Dostupné z: \url{https://github.com/JedlaTypek/shared-ev-chargers}}.
+	
+	
+	%% literatura
+\begin{thebibliography}{99}
+	%% 1. ŠABLONA (Tvůj požadavek)
+	\bibitem{sablonaSOC} DOKULIL, Jakub. \textit{Šablona pro psaní SOČ v programu \LaTeX} [online]. Brno, 2020 [cit. 2020-08-24]. Dostupné z: \url{https://github.com/Kubiczek36/SOC_sablona}
+	
+	%% 2. OCPP SPECIFIKACE (Tvůj požadavek - velmi důležité)
+	\bibitem{ocppCore} OPEN CHARGE ALLIANCE. \textit{Open Charge Point Protocol 1.6} [online]. Edition 2. Arnhem: Open Charge Alliance, 2017 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+	
+	\bibitem{ocppJson} OPEN CHARGE ALLIANCE. \textit{Open Charge Point Protocol JSON 1.6: OCPP-J 1.6 Specification} [online]. Arnhem: Open Charge Alliance, 2017 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+	
+	\bibitem{ocppErrata} OPEN CHARGE ALLIANCE. \textit{OCPP 1.6 Errata sheet} [online]. Verze 2025-04. Arnhem: Open Charge Alliance, 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+	
+	\bibitem{ocppJsonErrata} OPEN CHARGE ALLIANCE. \textit{OCPP 1.6-J Errata sheet} [online]. Verze 2025-04. Arnhem: Open Charge Alliance, 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+	
+	%% 3. TECHNICKÁ DOKUMENTACE (Toto ti chybělo a je to nutné)
+	\bibitem{nodejs} OPENJS FOUNDATION. \textit{Node.js Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://nodejs.org/en/docs/}
+	
+	\bibitem{fastapi} RAMÍREZ, Sebastián. \textit{FastAPI: High performance, easy to learn, fast to code, ready for production} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://fastapi.tiangolo.com/}
+	
+	\bibitem{docker} DOCKER INC. \textit{Docker Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://docs.docker.com/}
+	
+	\bibitem{postgresql} THE POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textit{PostgreSQL 16 Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.postgresql.org/docs/}
+	
+	\bibitem{redis} REDIS LTD. \textit{Redis Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://redis.io/docs/}
+	
+	%% 4. LaTeX ZDROJE (Z šablony - můžeš nechat, vypadá to, že jsi studoval jak psát)
+	\bibitem{LaTeXprirucka} OETIKER, Tobias et al. \textit{Ne příliš stručný úvod do systému LaTeX2e} [online]. 1998 [cit. 2020-08-24]. Dostupné z: \url{https://www.jaroska.cz/elearning/informatika/typografie/lshort2e-cz.pdf}
+	
+	\bibitem{wikibooksLaTeX} \textit{Wikibooks: LaTeX} [online]. Wikimedia Foundation, 2001- [cit. 2020-08-24]. Dostupné z: \url{https://en.wikibooks.org/wiki/LaTeX}
+	
+\end{thebibliography}
+	
+	%% obrázky 
+	\listoffigures
+	
+	%% tabulky
+	\listoftables
+	
+	%% \appendix %% začínají přílohy
+	
+	%% \titleformat{\chapter}[block]{\scshape\bfseries\LARGE}{Příloha \thechapter}{10pt}{\vspace{0pt}}[\vspace{-22pt}] %% nastavení nadpisu u příloh
+	
+	
+	%% \chapter{%Příloha A 
+		%%    Spot diagramy a další }
+	
+	
+\end{document}
