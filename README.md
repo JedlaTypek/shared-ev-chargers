@@ -1,70 +1,65 @@
-# Sdílené nabíječky elektromobilů
-## Volba tématu
-Chtěl bych vytvořit systém, který by dovolil lidem sdílet své domovní nabíječky elektromobilů ostatním podobně jako Airbnb sdílí obydlí.
-## Analýza problému
-### Nápad
-Když jsem hledal, jestli něco takového existuje, zjistil jsem, že v Česku pravděpodobně pár pokusů bylo, ale stránky již nefungují. V zahraničí už některé projekty existují, například:
-- [Go Plugable](https://www.goplugable.com/)
-- [Plug Inn](https://www.pluginn.app/en/)
+# ⚡ Voltuj - OCPP Backend System
 
-Go Plugable ale nabízí kompletní stanice. Tomu bych se chtěl vyhnout a chtěl bych využívat nabíjecí stanice, které už uživatel doma vlastní. Uživatelé si tedy nebudou muset kupovat novou nabíjecí stanici za desítky tisíc korun, ale můžou využít současnou nabíječku.
-### Inspirace
-- [https://chargemyhyundai.com](https://chargemyhyundai.com)
-- [https://www.evmapa.cz/#](https://www.evmapa.cz/#)
-## Výběr postupu a technologií
-### Síťová komunikace
-Chci využít **OCPP 1.6 JSON přes WebSocket** jako hlavní protokol pro komunikaci mezi nabíječkami a backendem. Nabíječky (např. Solax X3-HAC) budou OCPP klienty a připojí se přímo na OCPP server běžící v cloudu.  
-OCPP server bude implementovaný v **Node.js**, které je vhodné pro stovky až tisíce dlouhodobě otevřených spojení.
-### Autentizace
-Autentizace proběhne pomocí **RFID čtečky zabudované přímo v nabíječce**.  
-Nabíječka po přečtení RFID odešle ID karty na backend přes OCPP zprávu `Authorize`. Backend ověří platnost karty a odpoví nabíječce.  
-Použití ESP32 nebo Raspberry Pi Pico se zvažuje pouze pro nabíječky, které nemají vlastní RFID čtečku a/nebo OCPP podporu. V tom případě bude ESP32 fungovat jako prostředník (REST klient a řídicí jednotka).
-### Platby
-Po ukončení nabíjení backend vypočítá částku a provede automatické stržení kreditu uživatele, případně odečte přímo z účtu. Pro integraci plateb zvažuji využití kreditního systému nebo **GoPay API**.
-## Backend a API
-- **Node.js**: OCPP WebSocket server pro komunikaci s nabíječkami.  
-- **FastAPI (Python)**: API server pro mobilní aplikaci a web (uživatelé, platby, historie, rezervace). Poskytuje také automaticky generovanou dokumentaci API.  
-- **Redis**: cache, sessions, mapování websocket ID ↔ uživatel, real-time propojení mezi Node.js a FastAPI.  
-### Databáze
-Pro uložení uživatelů, historie nabíjení, dat o nabíječkách a autorizacích použiji **PostgreSQL** – stabilní a robustní relační databázi.  
-### Webová aplikace
-Frontend webu bude vyvíjen v **SvelteKit**, který umožňuje rychlý vývoj, má vestavěný routing a podporuje server-side rendering.  
-Webová aplikace nabídne přístup k mapě nabíječek, historii nabíjení a správě uživatelských účtů.
-### Mobilní aplikace
-Pro mobilní aplikaci zvolím **Flutter**. Umožní psát jeden kód pro Android i iOS, s možností snadno zobrazovat mapu nabíječek, kredit, historii nabíjení i rezervace.
-### Geolokace a mapa nabíječek
-Zobrazování nabíječek na mapě bude realizováno pomocí **Leaflet.js** (web) a **Mapbox SDK** nebo Google Maps (mobilní aplikace Flutter).
-### Bezpečnost
-- API bude zabezpečeno pomocí **JWT tokenů**.  
-- Veškerá komunikace poběží přes **HTTPS**.  
-- Implementace uživatelských rolí (majitel, uživatel, admin).  
-- Ochrana přes CORS, rate limiting a další bezpečnostní opatření.
-## Stanovení cílů
-1. Sprovoznit komunikaci s nabíječkami, které mají **integrovanou RFID čtečku a OCPP klienta** (např. Solax X3 HAC). Backend bude přijímat `Authorize` požadavky a řídit nabíjení přes OCPP.  
-2. Vytvořit responzivní webovou aplikaci v **SvelteKit** s mapou nabíječek, správou uživatelských účtů, historií nabíjení a statistikami.  
-3. Implementovat automatické strhávání plateb (kreditní systém nebo GoPay).  
-4. Vyvinout mobilní aplikaci ve **Flutteru** se stejnými funkcemi jako web (mapa, kredit, historie, rezervace).  
-### Volitelné cíle
-- Podpora dalších značek nabíječek bez OCPP.  
-- Statistiky o původu elektřiny (obnovitelné/neobnovitelné).  
-## Časový rozvrh
-Po celou dobu projektu si budu psát pracovní verzi dokumentace, kterou potom přetvořím do finální prezentace.  
-### Září
-- Vytvoření WebSocket serveru
-- Zprovoznění komunikace WebSocket serveru s nabíjčkami a API
-- Běh WebSocket serveru v dockeru
-### Říjen
-- Dokončení logiky WebSocket server při nabíjení (Autentizace, Start a Stop nabíjení)
-- Vytvoření API serveru
-- Přidání docker compose, aby vše běželo v dockeru
-- Vytvoření přehledného dashboardu v SvelteKit.  
-### Listopad
-- Dokončení webu (přidání mapy, ....)
-- Vyvinutí základní verze mobilní aplikace ve Flutteru.  
-### Prosinec
-- Příprava prezentace a dokumentace.
-- Rezerva pro skluz nebo volitelné cíle.  
-## Získání potřebných znalostí a dovedností
-- Seznámím se s OCPP.  
-- Zdokonalím se v Node.js (pro websocket server), Pythonu (FastAPI), databázích (PostgreSQL) a práci s Redisem.  
-- Naučím se používat SvelteKit pro frontend a Flutter pro mobilní vývoj.  
+Tento projekt představuje robustní backendové řešení pro správu a sdílení soukromých nabíjecích stanic elektromobilů. Systém je postaven na mezinárodním standardu **OCPP 1.6J** a umožňuje majitelům wallboxů integrovat svou infrastrukturu do modelu sdílené ekonomiky.
+
+## 🏗️ Architektura systému
+Projekt využívá moderní architekturu mikroslužeb založenou na principu **API-first**. Celý ekosystém je plně kontejnerizován a sestává z následujících komponent:
+
+- **OCPP Backend (Node.js)**: Stavová služba zajišťující perzistentní WebSocket spojení s nabíjecími stanicemi. Provádí validaci zpráv pomocí JSON schémat a řídí logiku nabíjecích procesů.
+- **API Backend (FastAPI)**: Aplikační jádro implementované v Pythonu. Zajišťuje business logiku, správu uživatelských účtů, autorizaci (JWT), databázové migrace a evidenci transakcí.
+- **PostgreSQL**: Relační databáze pro bezpečné ukládání uživatelských dat, konfigurací nabíječek a detailních provozních logů.
+- **Redis**: In-memory datové úložiště pro real-time sledování stavu konektorů (Available, Preparing, Charging atd.).
+
+## 🚀 Rychlý start (Vývojové prostředí)
+Díky plné kontejnerizaci není pro lokální spuštění vyžadována instalace Pythonu ani Node.js. Postačí nainstalované prostředí Docker a nástroj Docker Compose.
+
+### 1. Příprava prostředí
+Zkopírujte šablonu `.env-example` do nového souboru `.env` a doplňte požadované konfigurační parametry (zejména přístupové údaje k databázi a bezpečnostní klíče).
+
+### 2. Spuštění vývojového režimu
+Tento režim využívá funkci **Hot-Reloading**, kdy se veškeré změny v kódu okamžitě promítají do běžících kontejnerů bez nutnosti restartu.
+
+```bash
+docker-compose -f docker-compose.dev.yaml up --build
+
+```
+
+### 3. Správa databázových migrací (Alembic)
+
+V rámci vývojového cyklu je nutné provádět migrace manuálně pro zajištění plné kontroly nad změnami schématu. Příkazy se spouštějí v kontextu běžícího kontejneru `api`:
+
+* **Aktualizace databáze na nejnovější verzi:**
+```bash
+docker compose exec api alembic upgrade head
+
+```
+
+
+* **Generování nové migrace (při změně modelů v `schema.py`):**
+```bash
+docker compose exec api alembic revision --autogenerate -m "popis změn"
+
+```
+
+## 🔒 Produkční nasazení
+
+Produkční sestavení využívá optimalizované multi-stage buildy, mechanismy automatického restartu a automatické aktualizace databáze podle poslední migrace.
+
+```bash
+docker-compose up -d
+
+```
+
+### Produkční schéma WSS komunikace:
+1. **Nabíjecí stanice** inicializuje šifrované spojení **WSS** na portu `9000` domény `jedlickaf.cz`.
+2. **Apache** (Reverse Proxy) provádí dešifrování provozu pomocí SSL certifikátu Let's Encrypt.
+3. Provoz je interně směrován jako **WS** na port `9001` do příslušného Docker kontejneru.
+
+## 🛠️ Použité technologie
+
+* **Python (FastAPI)** – Jádro systému a REST API
+* **Node.js** – Implementace OCPP WebSocket serveru
+* **PostgreSQL** – Perzistentní úložiště dat
+* **Redis** – Real-time stavový management
+* **Docker** – Kontejnerizace a orchestrace služeb
+* **Apache** – Reverse Proxy a správa SSL certifikace
