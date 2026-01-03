@@ -1,58 +1,37 @@
-# app/core/config.py
+# fastapi-backend/app/core/config.py
 from typing import List, Union
-from pydantic import field_validator
+from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings
 
 class Config(BaseSettings):
     project_name: str = "Voltuj"
     project_version: str = "0.1.0"
     
-    debug: bool = False
-
-    # Postgres
+    # Databáze
     postgres_user: str
     postgres_password: str
     postgres_db: str
-    postgres_host: str = "voltuj-db"
+    db_host: str
     postgres_port: int = 5432
 
     # Redis
-    redis_host: str = "voltuj-redis"
+    redis_host: str
     redis_port: int = 6379
 
-    # JWT secret
-    secret_key: str = "zmen_tohle_za_dlouhy_nahodny_string_v_produkci"
-    algorithm: str = "HS256"
-    access_token_expire_minutes: int = 30 # Token platí 30 minut
-
-    # OCPP API Key (pro komunikaci mezi FastAPI a OCPP serverem)
-    ocpp_api_key: str = "changeme"
-
-    # --- CORS CONFIGURATION ---
-    # Defaultně prázdný seznam. Pydantic si ho načte z BACKEND_CORS_ORIGINS v .env
+    # Bezpečnost
+    api_key: str
+    jwt_secret: str
+    # Pydantic automaticky parsuje ["*"] na list
     backend_cors_origins: List[str] = []
 
-    @field_validator("backend_cors_origins", mode="before")
-    @classmethod
-    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
-        # Pokud je v .env řetězec s čárkami (např. "http://a.com,http://b.com")
-        if isinstance(v, str) and not v.startswith("["):
-            return [i.strip() for i in v.split(",")]
-        # Pokud je to list nebo JSON string (např. '["http://a.com"]')
-        elif isinstance(v, (list, str)):
-            return v
-        raise ValueError(v)
-
+    # Ostatní
+    debug: bool
+    log_level: str = "info"
+    
+    # URL pro databázi (asynchronní pro aplikaci)
     @property
     def db_url(self) -> str:
-        return (
-            f"postgresql+asyncpg://{self.postgres_user}:"
-            f"{self.postgres_password}@"
-            f"{self.postgres_host}:{self.postgres_port}/"
-            f"{self.postgres_db}"
-        )
+        return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.db_host}:{self.postgres_port}/{self.postgres_db}"
 
-    class Config:
-        env_file = ".env"
-
+# Inicializace
 config = Config()

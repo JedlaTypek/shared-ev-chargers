@@ -4,7 +4,7 @@ services:
       context: ./fastapi-backend
       dockerfile: Dockerfile.dev
     container_name: voltuj-api-dev
-    env_file: ./fastapi-backend/.env
+    env_file: .env
     ports:
       - "8000:80"
     volumes:
@@ -19,7 +19,7 @@ services:
       context: ./ocpp-backend
       dockerfile: Dockerfile.dev
     container_name: voltuj-ocpp-dev
-    env_file: ./ocpp-backend/.env
+    env_file: .env
     ports:
       - "9000:9000"
     volumes:
@@ -32,7 +32,7 @@ services:
   db:
     image: postgres:16
     container_name: voltuj-db-dev
-    env_file: ./fastapi-backend/.env
+    env_file: .env
     volumes:
       - pgdata_dev:/var/lib/postgresql/data
     ports:
