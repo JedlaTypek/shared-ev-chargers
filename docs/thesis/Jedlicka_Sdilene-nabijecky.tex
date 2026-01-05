@@ -854,7 +854,7 @@ export async function loadHandlers() {
 	
 	K testování byly využity následující nástroje:
 	\begin{enumerate}
-		\item \textbf{OCPP CP Simulator} (autor \textit{shiv3})\footnote{Dostupné z: \url{https://github.com/shiv3/ocpp-cp-simulator}}: Webový nástroj k jednoduchému přepínání stavů konektoru, \texttt{StartTransaction}, \texttt{MeterValues} a \texttt{StopTransaction}.
+		\item \textbf{OCPPSimulator} (autor \textit{ozgurbayram})\footnote{Dostupné z: \url{https://github.com/ozgurbayram/OCPPSimulator}}: Velmi povedený a přehledný webový nástroj k simulaci nabíjení. Umožňuje přidání i více nabíječek.
 		\item \textbf{OCPP Virtual Charge Point} (autor \textit{solidstudiosh})\footnote{Dostupné z: \url{https://github.com/solidstudiosh/ocpp-virtual-charge-point}}: Komplexnější terminálový simulátor, který umožňuje větší kontrolu na posílanými zprávami.
 	\end{enumerate}
 	
@@ -909,37 +909,37 @@ Pro případné produkční nasazení by proto bylo nutné:
 	Kompletní implementace aplikace je publikována v repozitáři na službě GitHub\footnote{Dostupné z: \url{https://github.com/JedlaTypek/shared-ev-chargers}}.
 	
 	
-	%% literatura
-\begin{thebibliography}{99}
-	%% 1. ŠABLONA (Tvůj požadavek)
-	\bibitem{sablonaSOC} DOKULIL, Jakub. \textit{Šablona pro psaní SOČ v programu \LaTeX} [online]. Brno, 2020 [cit. 2020-08-24]. Dostupné z: \url{https://github.com/Kubiczek36/SOC_sablona}
+	%% Seznam zdrojů
+	\renewcommand{\bibname}{Seznam zdrojů} %% Pro třídy report/book
+	\renewcommand{\refname}{Seznam zdrojů} %% Pro třídu article (pro jistotu, pokud by se třída změnila)
 	
-	%% 2. OCPP SPECIFIKACE (Tvůj požadavek - velmi důležité)
-	\bibitem{ocppCore} OPEN CHARGE ALLIANCE. \textit{Open Charge Point Protocol 1.6} [online]. Edition 2. Arnhem: Open Charge Alliance, 2017 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+	\begin{thebibliography}{99}
+		%% 1. ŠABLONA
+		\bibitem{sablonaSOC} DOKULIL, Jakub. \textit{Šablona pro psaní SOČ v programu \LaTeX} [online]. Brno, 2020 [cit. 2020-08-24]. Dostupné z: \url{https://github.com/Kubiczek36/SOC_sablona}
+		
+		%% 2. OCPP SPECIFIKACE
+		\bibitem{ocppCore} OPEN CHARGE ALLIANCE. \textit{Open Charge Point Protocol 1.6} [online]. Edition 2. Arnhem: Open Charge Alliance, 2017 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+		
+		\bibitem{ocppJson} OPEN CHARGE ALLIANCE. \textit{Open Charge Point Protocol JSON 1.6: OCPP-J 1.6 Specification} [online]. Arnhem: Open Charge Alliance, 2017 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+		
+		\bibitem{ocppErrata} OPEN CHARGE ALLIANCE. \textit{OCPP 1.6 Errata sheet} [online]. Verze 2025-04. Arnhem: Open Charge Alliance, 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+		
+		\bibitem{ocppJsonErrata} OPEN CHARGE ALLIANCE. \textit{OCPP 1.6-J Errata sheet} [online]. Verze 2025-04. Arnhem: Open Charge Alliance, 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
+		
+		%% 3. TECHNICKÁ DOKUMENTACE
+		\bibitem{nodejs} OPENJS FOUNDATION. \textit{Node.js Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://nodejs.org/en/docs/}
+		
+		\bibitem{fastapi} RAMÍREZ, Sebastián. \textit{FastAPI: High performance, easy to learn, fast to code, ready for production} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://fastapi.tiangolo.com/}
+		
+		\bibitem{docker} DOCKER INC. \textit{Docker Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://docs.docker.com/}
+		
+		\bibitem{postgresql} THE POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textit{PostgreSQL 16 Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.postgresql.org/docs/}
+		
+		\bibitem{redis} REDIS LTD. \textit{Redis Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://redis.io/docs/}
+		
+	\end{thebibliography}
 	
-	\bibitem{ocppJson} OPEN CHARGE ALLIANCE. \textit{Open Charge Point Protocol JSON 1.6: OCPP-J 1.6 Specification} [online]. Arnhem: Open Charge Alliance, 2017 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
-	
-	\bibitem{ocppErrata} OPEN CHARGE ALLIANCE. \textit{OCPP 1.6 Errata sheet} [online]. Verze 2025-04. Arnhem: Open Charge Alliance, 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
-	
-	\bibitem{ocppJsonErrata} OPEN CHARGE ALLIANCE. \textit{OCPP 1.6-J Errata sheet} [online]. Verze 2025-04. Arnhem: Open Charge Alliance, 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.openchargealliance.org/downloads/}
-	
-	%% 3. TECHNICKÁ DOKUMENTACE (Toto ti chybělo a je to nutné)
-	\bibitem{nodejs} OPENJS FOUNDATION. \textit{Node.js Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://nodejs.org/en/docs/}
-	
-	\bibitem{fastapi} RAMÍREZ, Sebastián. \textit{FastAPI: High performance, easy to learn, fast to code, ready for production} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://fastapi.tiangolo.com/}
-	
-	\bibitem{docker} DOCKER INC. \textit{Docker Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://docs.docker.com/}
-	
-	\bibitem{postgresql} THE POSTGRESQL GLOBAL DEVELOPMENT GROUP. \textit{PostgreSQL 16 Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://www.postgresql.org/docs/}
-	
-	\bibitem{redis} REDIS LTD. \textit{Redis Documentation} [online]. 2025 [cit. 2025-12-29]. Dostupné z: \url{https://redis.io/docs/}
-	
-	%% 4. LaTeX ZDROJE (Z šablony - můžeš nechat, vypadá to, že jsi studoval jak psát)
-	\bibitem{LaTeXprirucka} OETIKER, Tobias et al. \textit{Ne příliš stručný úvod do systému LaTeX2e} [online]. 1998 [cit. 2020-08-24]. Dostupné z: \url{https://www.jaroska.cz/elearning/informatika/typografie/lshort2e-cz.pdf}
-	
-	\bibitem{wikibooksLaTeX} \textit{Wikibooks: LaTeX} [online]. Wikimedia Foundation, 2001- [cit. 2020-08-24]. Dostupné z: \url{https://en.wikibooks.org/wiki/LaTeX}
-	
-\end{thebibliography}
+	\newpage
 	
 	%% obrázky 
 	\listoffigures
