@@ -126,7 +126,7 @@ async def verify_api_key(x_api_key: str = Header(...)):
     Ověří, zda požadavek obsahuje správný API Key v hlavičce 'x-api-key'.
     FastAPI automaticky převede 'X-API-Key' z hlavičky na proměnnou 'x_api_key'.
     """
-    if x_api_key != config.ocpp_api_key:
+    if x_api_key != config.api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid API Key",

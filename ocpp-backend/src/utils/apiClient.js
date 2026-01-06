@@ -3,12 +3,12 @@ import { config } from "./config.js";
 import logger from "./logger.js";
 
 const apiClient = axios.create({
-  baseURL: config.backendInternalUrl, // Použije http://api:8000/api/v1/internal
+  baseURL: config.apiUrl, // Použije http://api:8000/api/v1/internal
   timeout: 5000,
   headers: {
     "Content-Type": "application/json",
     // Pokud používáš API Key pro zabezpečení interní komunikace:
-    ...(config.ocppApiKey && { "x-api-key": config.ocppApiKey }),
+    ...(config.apiKey && { "x-api-key": config.apiKey }),
   },
 });
 

@@ -49,7 +49,8 @@ export default async function handleStartTransaction({ client, payload }) {
         };
 
         try {
-            client.log.info(`📤 Sending ChargePointMaxProfile (${limitWatts}W)...`);
+            // Upravené logování pro zobrazení celé zprávy
+            client.log.info({ profilePayload }, `📤 Sending ChargePointMaxProfile (${limitWatts}W)...`);
             const profileResponse = await client.call("SetChargingProfile", profilePayload);
 
             if (profileResponse.status === 'Accepted') {
