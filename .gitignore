@@ -77,3 +77,6 @@ logs/
 *.vrb
 *.xdy
 *.tdo
+
+
+ocpp-log.txt

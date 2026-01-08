@@ -23,21 +23,16 @@ export default async function handleBootNotification({ client, payload }) {
 
     client.log.info("✅ Charger authorized and updated");
 
-    // 2. Debug Konfigurace
+  // 2. Debug Konfigurace a Nastavení měření
     setTimeout(async () => {
-      // TADY BYLA CHYBA: Vyhodil jsem tu kontrolu 'if (!client.connection...)'
-      // Necháme to spadnout do catch bloku, pokud by spojení neexistovalo,
-      // ale aspoň uvidíme log.
-      
-      client.log.info("⏰ Timeout passed. Attempting GetConfiguration...");
+      client.log.info("⏰ Timeout passed. Starting configuration sequence...");
 
+      // --- KROK A: Získání aktuální konfigurace (pro kontrolu) ---
       try {
-        // Zkusíme získat úplně všechno (prázdné pole klíčů)
         const response = await client.call('GetConfiguration', { 
-            key: [] 
+            key: [] // Prázdné pole = dej mi všechno
         });
-
-        // Výpis do logu - zajímají nás hlavně unknownKeys a konkrétní hodnoty
+        
         client.log.info({ 
             configurationKeys: response.configurationKey,
             unknownKeys: response.unknownKey 
@@ -47,41 +42,61 @@ export default async function handleBootNotification({ client, payload }) {
         client.log.error({ err: err.message }, "❌ Failed to GetConfiguration");
       }
 
+      // --- KROK B: Povolení Remote Start (pro APP mode) ---
       try {
         client.log.info("⚙️ Attempting to enable Remote Start (AuthorizeRemoteTxRequests)...");
 
-        // 1. Odeslání příkazu a čekání na odpověď
         const response = await client.call('ChangeConfiguration', {
             key: 'AuthorizeRemoteTxRequests',
             value: 'true'
         });
 
-        // 2. Kontrola statusu odpovědi
         if (response.status === 'Accepted') {
             client.log.info("✅ Configuration SUCCESS: AuthorizeRemoteTxRequests is now TRUE");
         } 
         else if (response.status === 'RebootRequired') {
             client.log.warn("⚠️ Configuration ACCEPTED, but CHARGER REBOOT REQUIRED");
         }
-        else if (response.status === 'Rejected') {
-            // Toto se stane, pokud je klíč v nabíječce nastaven jako "readonly: true"
-            client.log.error("❌ Configuration REJECTED: Key is likely ReadOnly");
-        }
-        else if (response.status === 'NotSupported') {
-            client.log.error("❌ Configuration FAILED: Key is not supported by this charger");
-        }
         else {
-            // Jiný neznámý status
-            client.log.warn({ status: response.status }, "❓ Unknown configuration status");
+            client.log.warn({ status: response.status }, "❌ Failed to set AuthorizeRemoteTxRequests");
         }
 
       } catch (err) {
-          // Chyba sítě nebo timeout
-          client.log.error({ err: err.message }, "💥 Network error while changing configuration");
+          client.log.error({ err: err.message }, "💥 Network error (AuthorizeRemoteTxRequests)");
+      }
+
+      // --- KROK C: Nastavení detailního měření (L1, L2, L3) ---
+      // TOTO JE TA NOVÁ ČÁST PRO DIAGNOSTIKU FÁZÍ
+      try {
+        client.log.info("🛠️ Attempting to configure detailed MeterValues (L1, L2, L3)...");
+
+        const response = await client.call('ChangeConfiguration', {
+            key: 'MeterValuesSampledData',
+            // Žádáme: Celkový proud, Proudy po fázích, Celkové napětí, Napětí po fázích, Výkon, Energie
+            value: 'Current.Import,Current.Import.L1,Current.Import.L2,Current.Import.L3,Voltage,Voltage.L1,Voltage.L2,Voltage.L3,Power.Active.Import,Energy.Active.Import.Register'
+        });
+
+        if (response.status === 'Accepted') {
+            client.log.info("✅ MeterValues Configuration SUCCESS: Detailed phases enabled!");
+        } 
+        else if (response.status === 'RebootRequired') {
+            client.log.warn("⚠️ MeterValues Configuration ACCEPTED, but REBOOT REQUIRED");
+        }
+        else if (response.status === 'Rejected') {
+            // Varování: V předchozím logu byl tento klíč označen jako 'readonly: true'.
+            // Je možné, že to Solax nedovolí změnit.
+            client.log.error("❌ MeterValues Configuration REJECTED (Key might be ReadOnly)");
+        }
+        else {
+            client.log.warn({ status: response.status }, "❌ MeterValues Configuration FAILED");
+        }
+
+      } catch (err) {
+        client.log.error({ err: err.message }, "💥 Network error (MeterValuesSampledData)");
       }
       
     }, 2000);
-
+    
     return ocppResponse.bootNotification("Accepted", 300);
 
   } catch (error) {
