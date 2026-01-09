@@ -21,8 +21,10 @@ class Config(BaseSettings):
     # Bezpečnost
     api_key: str
     jwt_secret: str
+    access_token_expire_minutes: int = 30
     # Pydantic automaticky parsuje ["*"] na list
     backend_cors_origins: List[str] = []
+    algorithm: str = "HS256"
 
     # Ostatní
     debug: bool

@@ -43,5 +43,8 @@ class UserUpdate(BaseModel):
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
     
+    # Pro změnu hesla je nutné zadat původní heslo (pokud nemění Admin jinému)
+    old_password: Optional[str] = None
+    
     # Změna na Decimal
     balance: Optional[Decimal] = None

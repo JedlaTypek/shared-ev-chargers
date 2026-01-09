@@ -65,7 +65,7 @@ async def get_current_user(
         # Dekódování JWT tokenu
         payload = jwt.decode(
             token, 
-            config.secret_key, 
+            config.jwt_secret, 
             algorithms=[config.algorithm]
         )
         user_id: str = payload.get("sub")
@@ -104,7 +104,7 @@ async def get_current_user_optional(
     try:
         payload = jwt.decode(
             token, 
-            config.secret_key, 
+            config.jwt_secret, 
             algorithms=[config.algorithm]
         )
         user_id: str = payload.get("sub")

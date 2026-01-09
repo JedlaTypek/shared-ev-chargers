@@ -2,7 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.db.schema import User
 from app.models.user import UserCreate, UserUpdate
-from app.core.security import get_password_hash
+from app.core.config import config
+from app.core.security import get_password_hash, verify_password
 
 class UserService:
     def __init__(self, session: AsyncSession):
@@ -48,7 +49,7 @@ class UserService:
         return user
 
     # -------- UPDATE USER --------
-    async def update_user(self, user_id: int, user_data: UserUpdate) -> User | None:
+    async def update_user(self, user_id: int, user_data: UserUpdate, verify_old_password: bool = True) -> User | None:
         user = await self.get_user(user_id)
         if not user:
             return None
@@ -56,11 +57,26 @@ class UserService:
         # Pydantic metoda .model_dump(exclude_unset=True) vrátí jen to, co uživatel poslal
         update_fields = user_data.model_dump(exclude_unset=True)
         
-        for field, value in update_fields.items():
-            # OPRAVA: Pokud se mění heslo, musíme ho zahashovat!
-            if field == "password" and value:
-                value = get_password_hash(value)
+        # Ošetření změny hesla
+        if "password" in update_fields:
+            new_password = update_fields["password"]
+            
+            # Pokud se mění heslo a je vyžadováno ověření původního
+            if verify_old_password:
+                old_password = update_fields.get("old_password")
+                if not old_password:
+                     raise ValueError("Old password is required to change password")
                 
+                if not verify_password(old_password, user.password):
+                     raise ValueError("Incorrect old password")
+            
+            # Zahashujeme nové heslo
+            update_fields["password"] = get_password_hash(new_password)
+            
+        # Odstraníme 'old_password' z polí k update (není v DB modelu)
+        update_fields.pop("old_password", None)
+        
+        for field, value in update_fields.items():
             setattr(user, field, value)
 
         await self._db.commit()

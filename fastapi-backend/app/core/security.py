@@ -25,6 +25,6 @@ def create_access_token(subject: str | Any, expires_delta: timedelta = None) -> 
     
     to_encode = {"exp": expire, "sub": str(subject)}
     
-    # ZMĚNA: config.secret_key a config.algorithm
-    encoded_jwt = jwt.encode(to_encode, config.secret_key, algorithm=config.algorithm)
+    # ZMĚNA: config.jwt_secret a config.algorithm
+    encoded_jwt = jwt.encode(to_encode, config.jwt_secret, algorithm=config.algorithm)
     return encoded_jwt

@@ -100,14 +100,27 @@ async def update_user(
     if user_id != current_user.id and not is_admin:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
-    # 2. Bezpečnostní pojistka: Běžný uživatel nesmí měnit svou roli ani zůstatek!
+    # 2. Bezpečnostní pojistka: Běžný uživatel nesmí měnit svou roli na admina ani zůstatek!
     if not is_admin:
-        if user_data.role is not None:
-             raise HTTPException(status_code=403, detail="Cannot change own role")
+        if user_data.role == UserRole.admin:
+             raise HTTPException(status_code=403, detail="Cannot set role to admin")
+        
+        # Balance si měnit nesmí
         if user_data.balance is not None:
              raise HTTPException(status_code=403, detail="Cannot change own balance manually")
 
-    updated = await service.update_user(user_id, user_data)
+    # 3. Určíme, zda se má kontrolovat staré heslo
+    # Pokud uživatel mění své vlastní údaje, vyžadujeme staré heslo (pokud mění heslo)
+    # Pokud Admin mění údaje někoho jiného, staré heslo nevyžadujeme.
+    verify_old = True
+    if is_admin and user_id != current_user.id:
+        verify_old = False
+
+    try:
+        updated = await service.update_user(user_id, user_data, verify_old_password=verify_old)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+        
     if not updated:
         raise HTTPException(status_code=404, detail="User not found")
     return updated

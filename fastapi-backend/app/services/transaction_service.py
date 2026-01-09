@@ -12,12 +12,20 @@ class TransactionService:
     def __init__(self, session: AsyncSession):
         self._db = session
 
-    async def get_transactions(self, user_id: int | None = None, skip: int = 0, limit: int = 100):
-        stmt = select(ChargeLog).order_by(ChargeLog.start_time.desc()).offset(skip).limit(limit)
+    async def get_transactions(self, user_id: int | None = None, owner_id: int | None = None, charger_id: int | None = None, skip: int = 0, limit: int = 100):
+        stmt = select(ChargeLog)
         
+        if owner_id:
+            stmt = stmt.join(Charger).where(Charger.owner_id == owner_id)
+        
+        if charger_id:
+            stmt = stmt.where(ChargeLog.charger_id == charger_id)
+
         if user_id:
             stmt = stmt.where(ChargeLog.user_id == user_id)
             
+        stmt = stmt.order_by(ChargeLog.start_time.desc()).offset(skip).limit(limit)
+        
         result = await self._db.execute(stmt)
         return result.scalars().all()
 
