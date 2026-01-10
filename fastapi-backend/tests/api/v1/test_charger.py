@@ -38,32 +38,32 @@ class TestCharger(unittest.TestCase):
         app.dependency_overrides = {}
 
     def test_list_chargers(self):
-        self.mock_service.list_chargers.return_value = [
-            {
-                "id": 1, 
-                "name": "Charger 1", 
-                "owner_id": 10,
-                "latitude": 50.0,
-                "longitude": 14.0,
-                "ocpp_id": "CH1",
-                "created_at": "2023-01-01T00:00:00"
-            }
-        ]
+        m = MagicMock(
+            id=1, owner_id=1, 
+            latitude=50.0, longitude=14.0,
+            street="S", house_number="1", city="C", postal_code="123", region="R",
+            ocpp_id="V-001",
+            vendor=None, model=None, serial_number=None, firmware_version=None,
+            is_active=True, is_enabled=True, created_at="2023-01-01T00:00:00"
+        )
+        m.name = "C1"
+        self.mock_service.list_chargers.return_value = [m]
         
         response = self.client.get("/api/v1/chargers/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()), 1)
 
     def test_create_charger_as_owner(self):
-        self.mock_service.create_charger.return_value = {
-            "id": 1,
-            "name": "New Charger",
-            "owner_id": 10,
-            "latitude": 50.0,
-            "longitude": 14.0,
-            "ocpp_id": "CH1",
-            "created_at": "2023-01-01T00:00:00"
-        }
+        m = MagicMock(
+            id=1, owner_id=1, 
+            latitude=50.0, longitude=14.0,
+            street=None, house_number=None, city=None, postal_code=None, region=None,
+            ocpp_id="V-001",
+            vendor=None, model=None, serial_number=None, firmware_version=None,
+            is_active=True, is_enabled=True, created_at="2023-01-01T00:00:00"
+        )
+        m.name = "New Charger"
+        self.mock_service.create_charger.return_value = m
         
         response = self.client.post("/api/v1/chargers/", json={
             "name": "New Charger",
@@ -85,16 +85,16 @@ class TestCharger(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 403)
 
-    def test_get_charger_detail(self):
-        self.mock_service.get_charger.return_value = {
-            "id": 1, 
-            "name": "Charger 1", 
-            "owner_id": 10,
-            "latitude": 50.0,
-            "longitude": 14.0,
-            "ocpp_id": "CH1",
-            "created_at": "2023-01-01T00:00:00"
-        }
+    def test_get_charger_detail(self):        # Mock
+        m = MagicMock(
+            id=1, owner_id=1, 
+            latitude=50.0, longitude=14.0, ocpp_id="V-001",
+            street=None, house_number=None, city=None, postal_code=None, region=None,
+            vendor=None, model=None, serial_number=None, firmware_version=None,
+            is_active=True, is_enabled=True, created_at="2023-01-01T00:00:00"
+        )
+        m.name = "C1"
+        self.mock_service.get_charger.return_value = m
         response = self.client.get("/api/v1/chargers/1")
         self.assertEqual(response.status_code, 200)
         
@@ -105,15 +105,18 @@ class TestCharger(unittest.TestCase):
         mock_charger.owner_id = 10 # Same as current_user
         self.mock_service.get_charger.return_value = mock_charger
         
-        self.mock_service.update_charger.return_value = {
-            "id": 1, 
-            "name": "Updated Name",
-            "owner_id": 10,
-            "latitude": 50.0,
-            "longitude": 14.0,
-            "ocpp_id": "CH1",
-            "created_at": "2023-01-01T00:00:00"
-        }
+        m = MagicMock(
+            id=1, 
+            owner_id=10,
+            latitude=50.0,
+            longitude=14.0,
+            street=None, house_number=None, city=None, postal_code=None, region=None,
+            ocpp_id="V-001",
+            vendor=None, model=None, serial_number=None, firmware_version=None,
+            is_active=True, is_enabled=True, created_at="2023-01-01T00:00:00"
+        )
+        m.name = "Updated Name"
+        self.mock_service.update_charger.return_value = m
         
         response = self.client.patch("/api/v1/chargers/1", json={"name": "Updated Name"})
         self.assertEqual(response.status_code, 200)

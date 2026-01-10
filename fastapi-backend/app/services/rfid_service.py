@@ -37,7 +37,8 @@ class RFIDService:
         card = RFIDCard(
             card_uid=card_data.card_uid,
             owner_id=owner_id,
-            is_active=True # Při vytvoření je vždy aktivní
+            is_active=True,  # Soft delete flag
+            is_enabled=True  # User switch
         )
         
         self._db.add(card)
@@ -67,6 +68,24 @@ class RFIDService:
              if existing:
                  raise ValueError(f"RFID Card with UID '{data.card_uid}' already exists")
 
+        # --- LOGIKA ZÁVISLOSTI is_active A is_enabled ---
+        # 1. Zjistíme, jaké hodnoty chceme nastavit (nebo co tam je teď)
+        # Použijeme data z requestu, pokud jsou k dispozici, jinak aktuální stav karty
+        next_is_active = data.is_active if data.is_active is not None else card.is_active
+        next_is_enabled = data.is_enabled if data.is_enabled is not None else card.is_enabled
+
+        # PRAVIDLO 1: Pokud nastavujeme is_active na False, musí být is_enabled taky False.
+        # Automaticky to vypneme a upozorníme (nebo prostě vypneme tiše, jak chtěl uživatel).
+        if data.is_active is False:
+             # Pokud v requestu explicitně ruším aktivitu, automaticky ruším i enabled status
+             data.is_enabled = False
+             next_is_enabled = False
+        
+        # PRAVIDLO 2: Pokud chci mít enabled=True, musí být active=True.
+        # Pokud request požaduje enabled=True (nebo enabled zůstává True) a active je False:
+        if next_is_enabled is True and next_is_active is False:
+            raise ValueError("Cannot enable an inactive card. Set is_active=True first or simultaneously.")
+
         # Dynamický update polí
         update_data = data.model_dump(exclude_unset=True)
         for key, value in update_data.items():
@@ -82,8 +101,9 @@ class RFIDService:
         if not card:
             return False
         
-        # Soft delete = nastavíme jako neaktivní
+        # Soft delete = nastavíme jako neaktivní A disabled
         card.is_active = False
+        card.is_enabled = False
         
         await self._db.commit()
         return True

@@ -18,11 +18,14 @@ class ChargerService:
         self._redis = redis
 
     # ZMĚNA: Přidán parametr owner_id pro filtrování (Moje nabíječky)
-    async def list_chargers(self, skip: int = 0, limit: int = 100, owner_id: int | None = None) -> list[Charger]:
+    async def list_chargers(self, skip: int = 0, limit: int = 100, owner_id: int | None = None, show_all: bool = False) -> list[Charger]:
         stmt = select(Charger).options(selectinload(Charger.connectors))
         
         if owner_id:
             stmt = stmt.where(Charger.owner_id == owner_id)
+            
+        if not show_all:
+             stmt = stmt.where(Charger.is_active == True) # noqa: E712
             
         stmt = stmt.offset(skip).limit(limit)
         result = await self._db.execute(stmt)
@@ -67,7 +70,8 @@ class ChargerService:
             postal_code=data.postal_code,
             region=data.region,
             ocpp_id=new_ocpp_id, 
-            is_active=data.is_active
+            is_active=True,    # Always active on create (soft delete flag)
+            is_enabled=True    # Default enabled on create
         )
 
         self._db.add(charger)
@@ -140,7 +144,12 @@ class ChargerService:
             return {"status": "Invalid"}
         
         if not card.is_active:
-            print(f"🚫 Authorization failed: Card {id_tag} is blocked")
+             print(f"🚫 Authorization failed: Card {id_tag} is deleted")
+             return {"status": "Invalid"} # Deleted card should look like it doesn't exist
+        
+        if not card.is_enabled:
+            print(f"🚫 Authorization failed: Card {id_tag} is disabled by user")
+            # "Blocked" or "Expired" often used for valid but disabled cards
             return {"status": "Blocked"}
 
         if self._redis:
@@ -158,11 +167,13 @@ class ChargerService:
         return tag
     
     async def check_exists_by_ocpp(self, ocpp_id: str) -> dict | None:
-        stmt = select(Charger.id, Charger.is_active).where(Charger.ocpp_id == ocpp_id)
+        stmt = select(Charger.id, Charger.is_active, Charger.is_enabled).where(Charger.ocpp_id == ocpp_id)
         result = await self._db.execute(stmt)
         row = result.first()
         if row:
-            return {"id": row.id, "is_active": row.is_active}
+            # Check active (not deleted) AND enabled (switched on)
+            is_working = row.is_active and row.is_enabled
+            return {"id": row.id, "is_active": is_working}
         return None
     
     async def update_heartbeat(self, ocpp_id: str):

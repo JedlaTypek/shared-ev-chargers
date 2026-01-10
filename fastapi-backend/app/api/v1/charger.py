@@ -22,6 +22,7 @@ router = APIRouter()
 @router.get("", response_model=list[ChargerRead])
 async def get_chargers(
     mine: bool = False, # ?mine=true (přepínač)
+    show_all: bool = False, # ?show_all=true (zobrazí i smazané)
     service: ChargerService = Depends(get_charger_service),
     # ZMĚNA ZDE: Použijeme optional verzi. 
     # Pokud uživatel nemá token, current_user bude None, ale nevyhodí to chybu 401.
@@ -35,10 +36,14 @@ async def get_chargers(
                 status_code=status.HTTP_401_UNAUTHORIZED, 
                 detail="Authentication required for 'mine' filter"
             )
-        return await service.list_chargers(owner_id=current_user.id)
+        return await service.list_chargers(owner_id=current_user.id, show_all=show_all)
     
     # Veřejný seznam všech nabíječek (dostupný i pro current_user=None)
-    return await service.list_chargers()
+    # Admin vidí vše (pokud chce), ostatní vidí jen aktivní
+    is_admin = (current_user is not None) and (current_user.role == UserRole.admin)
+    effective_show_all = show_all and is_admin
+    
+    return await service.list_chargers(show_all=effective_show_all)
 
 
 # --- CREATE CHARGER (Protected: Owner or Admin) ---

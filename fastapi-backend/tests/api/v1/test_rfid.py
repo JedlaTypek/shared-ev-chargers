@@ -40,7 +40,7 @@ class TestRFID(unittest.TestCase):
 
     def test_list_cards(self):
         self.mock_service.list_cards.return_value = [
-            {"id": 1, "card_uid": "AABBCC", "owner_id": 1, "is_active": True, "created_at": "2023-01-01T00:00:00"}
+            MagicMock(id=1, card_uid="AABBCC", owner_id=1, is_active=True, is_enabled=True, created_at="2023-01-01T00:00:00")
         ]
         
         response = self.client.get("/api/v1/rfid-cards/")
@@ -48,13 +48,14 @@ class TestRFID(unittest.TestCase):
         self.assertEqual(len(response.json()), 1)
 
     def test_create_card(self):
-        self.mock_service.create_card.return_value = {
-            "id": 1, 
-            "card_uid": "AABBCC", 
-            "owner_id": 1, 
-            "is_active": True,
-            "created_at": "2023-01-01T00:00:00"
-        }
+        self.mock_service.create_card.return_value = MagicMock(
+            id=1, 
+            card_uid="AABBCC", 
+            owner_id=1, 
+            is_active=True,
+            is_enabled=True,
+            created_at="2023-01-01T00:00:00"
+        )
         
         response = self.client.post("/api/v1/rfid-cards/", json={"card_uid": "AABBCC"})
         self.assertEqual(response.status_code, 201)
@@ -70,6 +71,7 @@ class TestRFID(unittest.TestCase):
         mock_card.card_uid = "AABBCC"
         mock_card.owner_id = 1
         mock_card.is_active = True
+        mock_card.is_enabled = True
         mock_card.created_at = "2023-01-01T00:00:00"
         
         self.mock_service.get_card.return_value = mock_card
@@ -83,6 +85,7 @@ class TestRFID(unittest.TestCase):
         mock_card.card_uid = "XXYYZZ"
         mock_card.owner_id = 999 
         mock_card.is_active = True
+        mock_card.is_enabled = True
         mock_card.created_at = "2023-01-01T00:00:00"
 
         self.mock_service.get_card.return_value = mock_card

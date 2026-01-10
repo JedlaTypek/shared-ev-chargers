@@ -33,7 +33,9 @@ class ChargerBase(BaseModel):
     city: Optional[str] = None
     postal_code: Optional[str] = None
     region: Optional[str] = None
-    is_active: bool = True
+    region: Optional[str] = None
+    is_active: bool = True     # Soft delete
+    is_enabled: bool = True    # User switch (default True on creation)
 
 class ChargerCreate(ChargerBase):
     """
@@ -56,7 +58,9 @@ class ChargerUpdate(BaseModel):
     city: Optional[str] = None
     postal_code: Optional[str] = None
     region: Optional[str] = None
-    is_active: Optional[bool] = None
+    region: Optional[str] = None
+    is_active: Optional[bool] = None  # Soft delete restore/archive
+    is_enabled: Optional[bool] = None # User switch
     
     # Zde záměrně CHYBÍ vendor, model, serial_number, ocpp_id.
     # Uživatel je nemůže přes API změnit.
@@ -70,6 +74,7 @@ class ChargerRead(ChargerBase):
     id: int
     ocpp_id: str
     owner_id: int
+    is_enabled: bool # Make sure it's explicit in Read model (inherited from Base but good to double check)
     created_at: datetime
 
     vendor: Optional[str] = None

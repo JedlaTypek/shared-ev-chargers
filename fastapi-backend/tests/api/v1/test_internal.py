@@ -58,7 +58,9 @@ class TestInternal(unittest.TestCase):
             "created_at": "2023-01-01T00:00:00",
             "name": "Charger",
             "latitude": 50.0,
-            "longitude": 14.0
+            "longitude": 14.0,
+            "is_active": True,
+            "is_enabled": True
         }
         
         data = {
