@@ -52,6 +52,9 @@ services:
     env_file: .env
     volumes:
       - pgdata_beta:/var/lib/postgresql/data
+      - pgdata:/mnt/prod_data:ro # Read-only mount of PROD data
+      - ./docker/beta-db-entrypoint.sh:/usr/local/bin/beta-db-entrypoint.sh:ro
+    entrypoint: ["bash", "/usr/local/bin/beta-db-entrypoint.sh"]
     restart: always
     networks:
       - voltuj-beta-network
