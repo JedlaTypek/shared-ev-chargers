@@ -1,48 +1,67 @@
 services:
   api:
-    build:
-      context: ./fastapi-backend
-      dockerfile: Dockerfile.dev
-    container_name: voltuj-api-dev
+    build: ./fastapi-backend
     env_file: .env
+    container_name: voltuj-api
     ports:
-      - "8000:80"
-    volumes:
-      - ./fastapi-backend/app:/app/app
-      # - ./fastapi-backend/alembic:/app/alembic
+      - "3000:80"
     depends_on:
       - db
       - redis
+    restart: unless-stopped
+    networks:
+      - voltuj-network
 
   ocpp:
-    build:
-      context: ./ocpp-backend
-      dockerfile: Dockerfile.dev
-    container_name: voltuj-ocpp-dev
+    build: ./ocpp-backend
     env_file: .env
+    container_name: voltuj-ocpp
     ports:
-      - "9000:9000"
-    volumes:
-      - ./ocpp-backend/src:/app/src
-      - ./ocpp-backend/package.json:/app/package.json
+      - "9001:9000"
     depends_on:
       - redis
       - api
+    restart: unless-stopped
+    networks:
+      - voltuj-network
 
   db:
     image: postgres:16
-    container_name: voltuj-db-dev
+    container_name: voltuj-db
     env_file: .env
     volumes:
-      - pgdata_dev:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - voltuj-network
 
   redis:
     image: redis:7
-    container_name: voltuj-redis-dev
+    container_name: voltuj-redis
+    restart: unless-stopped
+    networks:
+      - voltuj-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: voltuj-frontend
+    env_file: .env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     ports:
-      - "6379:6379"
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - voltuj-network
 
 volumes:
-  pgdata_dev:
+  pgdata:
+
+networks:
+  voltuj-network:
+    driver: bridge

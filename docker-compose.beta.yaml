@@ -1,0 +1,72 @@
+services:
+  # --- API SERVICE ---
+  api:
+    build: ./fastapi-backend
+    env_file: .env
+    container_name: voltuj-api-beta
+    # Expose API on port 8000 internally or map if needed. 
+    # Usually frontend communicates via nginx proxy or direct URL.
+    # User requested "production startup", so we keep it simple.
+    ports:
+      - "3000:80" 
+    depends_on:
+      - db
+      - redis
+    restart: always
+    networks:
+      - voltuj-beta-network
+
+  # --- OCPP SERVICE ---
+  ocpp:
+    build: ./ocpp-backend
+    env_file: .env
+    container_name: voltuj-ocpp-beta
+    ports:
+      - "9001:9000"
+    depends_on:
+      - redis
+      - api
+    restart: always
+    networks:
+      - voltuj-beta-network
+
+  # --- FRONTEND SERVICE (Production Build) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file: .env
+    container_name: voltuj-frontend-beta
+    ports:
+      - "3001:3000" # Map host 3001 to container 3000
+    depends_on:
+      - api
+    restart: always
+    networks:
+      - voltuj-beta-network
+
+  # --- DATABASE ---
+  db:
+    image: postgres:16
+    container_name: voltuj-db-beta
+    env_file: .env
+    volumes:
+      - pgdata_beta:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - voltuj-beta-network
+
+  # --- REDIS ---
+  redis:
+    image: redis:7
+    container_name: voltuj-redis-beta
+    restart: always
+    networks:
+      - voltuj-beta-network
+
+volumes:
+  pgdata_beta:
+
+networks:
+  voltuj-beta-network:
+    driver: bridge

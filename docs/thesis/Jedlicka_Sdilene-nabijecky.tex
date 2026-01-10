@@ -869,22 +869,22 @@ export async function loadHandlers() {
 	
 	Tyto testy potvrdily, že aplikační logika backendu je implementována v souladu se specifikací OCPP 1.6J.
 	
-	\section{Testování s reálným hardwarem}
-	Pro ověření v reálném provozu byla využita domácí nabíjecí stanice. Cílem bylo potvrdit, že systém dokáže komunikovat i s fyzickým zařízením a řídit tok energie.
-	
-	\subsection{Průběh integrace}
-	Stanice byla nakonfigurována pro komunikaci s lokálně běžícím serverem. Následné testy prokázaly funkčnost komunikačního kanálu a správnou implementaci stavového automatu:
-	\begin{itemize}
-		\item \textbf{Konektivita:} Stanice úspěšně navázala WebSocket spojení.
-		\item \textbf{Registrace:} Server správně identifikoval zařízení a přijal \texttt{BootNotification}.
-		\item \textbf{Autorizace:} Po přiložení RFID čipu stanice odeslala požadavek \texttt{Authorize}, který server ověřil v databázi a vrátil kladnou odpověď (\texttt{Accepted}).
-		\item \textbf{Start transakce:} Stanice úspěšně zareagovala na autorizaci a odeslala zprávu \texttt{StartTransaction}. Server tuto zprávu zpracoval, založil záznam v databázi a vrátil unikátní \texttt{transactionId}.
-	\end{itemize}
-	
-\subsection{Zjištěná specifika hardwaru}
-I přes korektní průběh komunikační sekvence a potvrzení \texttt{StartTransaction} nedošlo u testované stanice k sepnutí silových prvků. Zařízení po 15 sekundách ukončilo relaci zprávou \texttt{StopTransaction}.
+\section{Testování s reálným hardwarem}
+Pro ověření v reálném provozu byla využita domácí nabíjecí stanice Solax X3-HAC 11kW. Cílem bylo potvrdit, že systém dokáže komunikovat i s fyzickým zařízením a řídit tok energie.
 
-Toto chování naznačuje, že ačkoliv je serverová logika validní (ověřeno simulátory), firmware stanice vyžaduje pro fyzické sepnutí specifické podmínky (např. stav konektoru nebo uzamčení kabelu), případně očekává nestandardní parametry v odpovědi serveru.
+\subsection{Průběh integrace}
+Stanice byla nakonfigurována pro komunikaci s lokálně běžícím serverem. Následné testy prokázaly funkčnost komunikačního kanálu a správnou implementaci stavového automatu:
+\begin{itemize}
+	\item \textbf{Konektivita:} Stanice úspěšně navázala WebSocket spojení.
+	\item \textbf{Registrace:} Server správně identifikoval zařízení a přijal \texttt{BootNotification}.
+	\item \textbf{Autorizace:} Po přiložení RFID čipu stanice odeslala požadavek \texttt{Authorize}, který server ověřil v databázi a vrátil kladnou odpověď (\texttt{Accepted}).
+	\item \textbf{Start transakce:} Stanice úspěšně zareagovala na autorizaci a odeslala zprávu \texttt{StartTransaction}. Server tuto zprávu zpracoval, založil záznam v databázi a vrátil unikátní \texttt{transactionId}.
+\end{itemize}
+
+\subsection{Zjištěná specifika a řešení problémů}
+Při úvodních testech se objevil problém, kdy i přes korektní průběh komunikační sekvence a potvrzení \texttt{StartTransaction} nedošlo u fyzické stanice k sepnutí silových prvků (stykačů). Zařízení po přibližně 15 sekundách relaci ukončilo zprávou \texttt{StopTransaction}.
+
+Analýzou bylo zjištěno, že firmware konkrétní testované stanice vyžaduje z bezpečnostních důvodů striktně šifrované spojení i v rámci lokální sítě. Problém byl vyřešen přechodem z nezabezpečeného protokolu \texttt{ws://} na zabezpečený \texttt{wss://} (WebSocket Secure) s využitím SSL/TLS certifikátu. Po této úpravě začala stanice na příkazy serveru reagovat správně a fyzické nabíjení bylo úspěšně zahájeno.
 
 \section{Závěr testování}
 Testy na dvou nezávislých simulátorech potvrdily, že backend je plně funkční a dodržuje standard OCPP 1.6J. Specifické chování testovaného fyzického zařízení poukazuje na známou fragmentaci implementací protokolu mezi výrobci hardwaru.

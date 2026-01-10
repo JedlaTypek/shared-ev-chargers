@@ -46,8 +46,27 @@ docker compose exec api alembic revision --autogenerate -m "popis změn"
 Produkční sestavení využívá optimalizované multi-stage buildy, mechanismy automatického restartu a automatické aktualizace databáze podle poslední migrace.
 
 ```bash
-docker-compose up -d
+docker-compose -f docker-compose.beta.yaml up -d --build
 
+```
+
+## Produkční nasazení s beta funkcemi
+
+Beta sestavení využívá výhody produkřního nasazení a zároveň přidává nové funkce, které jsou ještě ve vývoji, ale nejsou plně otestované, aby mohly být v produkčním sestavení.
+
+```bash
+docker-compose -f docker-compose.beta.yaml up -d --build
+```
+
+## Aktualizace produkčního nasazení
+**1. Stáhněte aktualizované soubory**
+```bash
+git pull
+```
+**2. Zkontrolujte změny v souborech .env-example**, jestli nová verze nevyžauje přidání nových proměnných
+**3. Restartujte produkční nasazení**
+```bash
+docker-compose -f docker-compose.beta.yaml up -d --build
 ```
 
 ## Vytvoření admin účtu
