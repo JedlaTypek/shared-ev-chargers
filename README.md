@@ -63,10 +63,11 @@ docker-compose -f docker-compose.beta.yaml up -d --build
 ```bash
 git pull
 ```
-**2. Zkontrolujte změny v souborech .env-example**, jestli nová verze nevyžauje přidání nových proměnných
-**3. Restartujte produkční nasazení**
+**2. Zkontrolujte změny v souborech .env-example**, jestli nová verze nevyžaduje přidání nových proměnných
+
+**3. Přebuilděte produkční nasazení**
 ```bash
-docker-compose -f docker-compose.beta.yaml up -d --build
+docker-compose up -d --build
 ```
 
 ## Vytvoření admin účtu
