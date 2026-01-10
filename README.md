@@ -50,6 +50,18 @@ docker-compose up -d
 
 ```
 
+## Vytvoření admin účtu
+Pro vytvoření admin účtu založte nového uživatele standartně přes API a poté ho v databázi manuálně povyšte na admina následujícími příkazy:
+**1. Připojte se do kontejneru s databází:** 
+```
+docker compose exec db psql -U [uzivatel] -d [databaze]
+```
+**2. Spusťte SQL příkaz pro změnu role:** Zadejte e-mail uživatele, kterého chcete povýšit:
+```
+UPDATE users SET role = 'admin' WHERE email = 'uzivatel@email.cz';
+```
+
+
 ### Produkční schéma WSS komunikace:
 1. **Nabíjecí stanice** inicializuje šifrované spojení **WSS** na portu `9000` domény `jedlickaf.cz`.
 2. **Apache** (Reverse Proxy) provádí dešifrování provozu pomocí SSL certifikátu Let's Encrypt.
