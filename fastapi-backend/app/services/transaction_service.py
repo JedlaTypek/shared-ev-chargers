@@ -122,15 +122,47 @@ class TransactionService:
         # 5. Výpočet Ceny
         # Cena = (Wh / 1000) * Cena_za_kWh
         if log.energy_wh > 0 and log.price_per_kwh:
-            # Převedeme na Decimal pro přesný výpočet, pokud je to potřeba, 
-            # ale Python to s Decimal v modelu zvládne.
-            # Dělíme 1000.0, abychom dostali kWh
-            kwh = log.energy_wh / 1000.0
-            # log.price_per_kwh je typu Decimal (z databáze)
-            # Výsledek převedeme na float nebo necháme, SQLAlchemy si poradí
-            log.price = float(log.price_per_kwh) * kwh
+            # Převedeme na Decimal pro přesný výpočet
+            kwh = Decimal(log.energy_wh) / Decimal(1000)
+            
+            # log.price_per_kwh je typu Decimal
+            log.price = log.price_per_kwh * kwh
         else:
             log.price = 0
+
+        # --- DEDUCT BALANCE FROM USER ---
+        if log.price > 0 and log.user_id:
+            # Musíme načíst uživatele, abychom mu odečetli kredit
+            # Import User musíme dát na začátek souboru, pokud tam není
+            # Ale tady lokálně pro přehlednost:
+            from app.db.schema import User
+            
+            user_stmt = select(User).where(User.id == log.user_id)
+            user_result = await self._db.execute(user_stmt)
+            user = user_result.scalars().first()
+            
+            if user:
+                # Odečteme cenu z balance
+                # log.price je Decimal (nebo 0), user.balance je Decimal
+                user.balance -= log.price
+                self._db.add(user) # Označíme pro update
+            
+            # --- CREDIT BALANCE TO CHARGER OWNER ---
+            # 1. Načteme nabíječku (pro získání owner_id)
+            stmt_charger = select(Charger).where(Charger.id == log.charger_id)
+            result_charger = await self._db.execute(stmt_charger)
+            charger = result_charger.scalars().first()
+            
+            if charger and charger.owner_id:
+                 # 2. Načteme majitele nabíječky
+                 stmt_owner = select(User).where(User.id == charger.owner_id)
+                 result_owner = await self._db.execute(stmt_owner)
+                 owner = result_owner.scalars().first()
+                 
+                 # 3. Přičteme mu kredit (pokud to není stejný uživatel, což by neměl být, ale i tak)
+                 if owner:
+                     owner.balance += log.price
+                     self._db.add(owner)
 
         # 6. Uložení do DB
         self._db.add(log)
