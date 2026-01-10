@@ -737,6 +737,10 @@ export type GetChargersApiV1ChargersGetData = {
          * Mine
          */
         mine?: boolean;
+        /**
+         * Show All
+         */
+        show_all?: boolean;
     };
     url: '/api/v1/chargers';
 };
@@ -1190,6 +1194,46 @@ export type GetMyTransactionsApiV1TransactionsGetResponses = {
 };
 
 export type GetMyTransactionsApiV1TransactionsGetResponse = GetMyTransactionsApiV1TransactionsGetResponses[keyof GetMyTransactionsApiV1TransactionsGetResponses];
+
+export type GetChargerUsageApiV1TransactionsUsageGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Charger Id
+         */
+        charger_id?: number | null;
+        /**
+         * Skip
+         */
+        skip?: number;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/transactions/usage';
+};
+
+export type GetChargerUsageApiV1TransactionsUsageGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetChargerUsageApiV1TransactionsUsageGetError = GetChargerUsageApiV1TransactionsUsageGetErrors[keyof GetChargerUsageApiV1TransactionsUsageGetErrors];
+
+export type GetChargerUsageApiV1TransactionsUsageGetResponses = {
+    /**
+     * Response Get Charger Usage Api V1 Transactions Usage Get
+     *
+     * Successful Response
+     */
+    200: Array<ChargeLogRead>;
+};
+
+export type GetChargerUsageApiV1TransactionsUsageGetResponse = GetChargerUsageApiV1TransactionsUsageGetResponses[keyof GetChargerUsageApiV1TransactionsUsageGetResponses];
 
 export type GetTransactionDetailApiV1TransactionsTransactionIdGetData = {
     body?: never;
