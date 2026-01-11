@@ -11,6 +11,9 @@ COPY . .
 # Build the application
 # Note: VITE_ variables must be present at build time or handled via runtime config.
 # We assume they are passed via build args or .env file present during build context.
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 RUN npm run build
 
 # Stage 2: Serve
