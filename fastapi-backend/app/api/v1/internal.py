@@ -44,6 +44,17 @@ async def handle_heartbeat(
         "currentTime": datetime.now(timezone.utc).isoformat() # <--- OPRAVA
     }
 
+@router.post("/disconnect/{ocpp_id}")
+async def handle_disconnect(
+    ocpp_id: str,
+    service: ChargerService = Depends(deps.get_charger_service)
+):
+    """
+    Voláno z OCPP serveru při odpojení WebSocketu.
+    """
+    await service.handle_disconnect(ocpp_id)
+    return {"status": "Disconnected"}
+
 @router.post("/boot-notification/{ocpp_id}", response_model=ChargerRead)
 async def handle_boot_notification(
     ocpp_id: str,
@@ -53,10 +64,14 @@ async def handle_boot_notification(
     """
     Voláno z Node.js při startu nabíječky.
     """
+    # 1. Update technických dat
     charger = await service.update_technical_status(ocpp_id, data)
     
     if not charger:
         raise HTTPException(status_code=404, detail="Charger not registered")
+
+    # 2. Nastavíme status na Online (zápis do Redisu)
+    await service.update_heartbeat(ocpp_id)
         
     return charger
 

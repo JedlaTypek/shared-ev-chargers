@@ -179,6 +179,15 @@ export default function PublicMap() {
                                         <h3 className="font-bold text-lg">{charger.name}</h3>
                                         <p className="text-sm text-gray-500">{charger.street} {charger.house_number}, {charger.city}</p>
 
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${(charger as any).status === 'Connected' ? 'bg-green-100 text-green-700' :
+                                                    (charger as any).status === 'Disconnected' ? 'bg-rose-100 text-rose-700' :
+                                                        'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                {(charger as any).status || 'Unknown'}
+                                            </span>
+                                        </div>
+
                                         <div className="flex items-center gap-1 text-xs font-semibold uppercase text-primary">
                                             <Zap size={14} fill="currentColor" /> {charger.connectors?.length || 0} Connectors
                                         </div>
@@ -197,6 +206,17 @@ export default function PublicMap() {
                                                     <div className="flex justify-between text-xs">
                                                         <span className="text-gray-500">Price:</span>
                                                         <span className="font-bold text-primary">{c.price_per_kwh} CZK/kWh</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-xs border-t border-gray-200 mt-1 pt-1">
+                                                        <span className="text-gray-500">Status:</span>
+                                                        <span className={`font-medium ${c.status === 'Available' ? 'text-green-600' :
+                                                            c.status === 'Charging' ? 'text-blue-600' :
+                                                                c.status === 'Preparing' ? 'text-yellow-600' :
+                                                                    c.status === 'Faulted' || c.status === 'Unavailable' ? 'text-red-600' :
+                                                                        'text-gray-500'
+                                                            }`}>
+                                                            {c.status || 'Unknown'}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             ))}

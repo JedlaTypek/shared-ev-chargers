@@ -75,6 +75,7 @@ class ChargerRead(ChargerBase):
     ocpp_id: str
     owner_id: int
     is_enabled: bool # Make sure it's explicit in Read model (inherited from Base but good to double check)
+    status: Optional[str] = "Disconnected" # New field: Connected / Disconnected / Disabled
     created_at: datetime
 
     vendor: Optional[str] = None

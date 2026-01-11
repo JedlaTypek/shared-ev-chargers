@@ -19,7 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Plus, Zap, Trash2, Pencil, Settings2, ScrollText, Copy } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import LocationPicker from '@/components/admin/LocationPicker';
 import {
@@ -152,7 +152,8 @@ export default function ChargersPage({ mode = 'mine' }: Props) {
             region: charger.region,
             latitude: charger.latitude,
             longitude: charger.longitude,
-            is_active: charger.is_active
+            is_active: charger.is_active,
+            is_enabled: charger.is_enabled
         });
         setIsAdding(false);
     };
@@ -179,7 +180,7 @@ export default function ChargersPage({ mode = 'mine' }: Props) {
                 <div className="flex items-center gap-4">
                     {user?.role === 'admin' && (
                         <div className="flex items-center space-x-2">
-                            <Switch id="show-deleted" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
+                            <Switch id="show-deleted" checked={showAll} onChange={(e: ChangeEvent<HTMLInputElement>) => setShowAll(e.target.checked)} />
                             <Label htmlFor="show-deleted">Show Deleted</Label>
                         </div>
                     )}
@@ -246,9 +247,19 @@ export default function ChargersPage({ mode = 'mine' }: Props) {
                                 <div>
                                     <CardTitle className="text-lg flex items-center gap-2">
                                         {charger.name}
-                                        <span className={`text-xs px-2 py-0.5 rounded-full ${charger.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                            {charger.is_active ? 'Active' : 'Inactive'}
-                                        </span>
+                                        <div className="flex gap-1">
+                                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${(charger as any).status === 'Connected' ? 'bg-green-100 text-green-700' :
+                                                (charger as any).status === 'Disconnected' ? 'bg-rose-100 text-rose-700' :
+                                                    'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                {(charger as any).status || 'Unknown'}
+                                            </span>
+                                            {!charger.is_active && (
+                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                                                    Deleted
+                                                </span>
+                                            )}
+                                        </div>
                                     </CardTitle>
                                     <CardDescription>{charger.city}, {charger.street} {charger.house_number}</CardDescription>
                                 </div>
@@ -389,13 +400,27 @@ export default function ChargersPage({ mode = 'mine' }: Props) {
                                     <input type="hidden" {...regEdit('longitude', { valueAsNumber: true })} />
                                 </div>
 
+                                {user?.role === 'admin' && (
+                                    <div className="flex items-center space-x-2">
+                                        <Switch
+                                            id="is_active_charger"
+                                            checked={watchEdit('is_active') ?? chargers?.find(c => c.id === editingChargerId)?.is_active ?? false}
+                                            onChange={(e: ChangeEvent<HTMLInputElement>) => setValueEdit('is_active', e.target.checked)}
+                                        />
+                                        <Label htmlFor="is_active_charger">Charger is Active (Not Deleted)</Label>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="is_active_charger"
-                                        defaultChecked={chargers?.find(c => c.id === editingChargerId)?.is_active || false}
-                                        onCheckedChange={(checked: boolean | 'indeterminate') => setValueEdit('is_active', checked === true)}
+                                    <Switch
+                                        id="is_enabled_charger"
+                                        checked={watchEdit('is_enabled') ?? false} // watch form state
+                                        onChange={(e: ChangeEvent<HTMLInputElement>) => setValueEdit('is_enabled', e.target.checked)}
                                     />
-                                    <Label htmlFor="is_active_charger">Charger is Active</Label>
+                                    <Label htmlFor="is_enabled_charger" className="flex flex-col">
+                                        <span>Enabled for Users</span>
+                                        <span className="font-normal text-xs text-muted-foreground">If disabled, no one can see or use this charger</span>
+                                    </Label>
                                 </div>
                             </div>
                             <DialogFooter>

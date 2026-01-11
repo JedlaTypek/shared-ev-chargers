@@ -29,12 +29,22 @@ class ChargerService:
             
         stmt = stmt.offset(skip).limit(limit)
         result = await self._db.execute(stmt)
-        return result.scalars().all()
+        chargers = result.scalars().all()
+        
+        await self._enrich_chargers_with_status(chargers)
+        await self._enrich_chargers_with_device_status(chargers)
+        return chargers
 
     async def get_charger(self, charger_id: int) -> Charger | None:
         stmt = select(Charger).options(selectinload(Charger.connectors)).where(Charger.id == charger_id)
         result = await self._db.execute(stmt)
-        return result.scalars().first()
+        charger = result.scalars().first()
+        
+        if charger:
+            await self._enrich_chargers_with_status([charger])
+            await self._enrich_chargers_with_device_status([charger])
+            
+        return charger
 
     async def _generate_ocpp_id(self, prefix: str = "VOLTUJ") -> str:
         stmt = (
@@ -193,6 +203,14 @@ class ChargerService:
             charger.last_heartbeat = datetime.now(timezone.utc).replace(tzinfo=None) # .replace(tzinfo=None) je jistota pro naive sloupce
             await self._db.commit()
 
+    async def handle_disconnect(self, ocpp_id: str):
+        """
+        Voláno při odpojení WebSocketu.
+        Okamžitě smaže záznam o online stavu.
+        """
+        redis_key = f"charger:{ocpp_id}:online"
+        await self._redis.delete(redis_key)
+
     async def is_charger_online(self, ocpp_id: str) -> bool:
         """
         Pomocná metoda pro frontend/mapu.
@@ -201,6 +219,70 @@ class ChargerService:
         if not self._redis:
             return False # Bez Redisu nevíme -> offline
             
-        key = f"charger:{ocpp_id}:heartbeat"
+        key = f"charger:{ocpp_id}:online"
         exists = await self._redis.exists(key)
         return exists > 0
+
+    async def _enrich_chargers_with_status(self, chargers: list[Charger]):
+        """
+        Doplní ke všem konektorům v seznamu nabíječek aktuální status z Redisu.
+        Používá Redis Pipeline pro minimalizaci round-trips.
+        """
+        if not self._redis or not chargers:
+            return
+
+        # 1. Sbírání klíčů
+        # Potřebujeme mapovat: (charger_index, connector_index) -> redis_key
+        keys_map = [] 
+        
+        for i, charger in enumerate(chargers):
+            for j, connector in enumerate(charger.connectors):
+                # Klíč musí odpovídat tomu v ConnectorService._get_redis_key
+                # f"charger:{ocpp_id}:connector:{connector_num}:status"
+                key = f"charger:{charger.ocpp_id}:connector:{connector.ocpp_number}:status"
+                keys_map.append((i, j, key))
+        
+        if not keys_map:
+            return
+
+        # 2. Batch fetch z Redisu
+        async with self._redis.pipeline() as pipe:
+            for _, _, key in keys_map:
+                pipe.get(key)
+            statuses = await pipe.execute()
+
+        # 3. Přiřazení statusů zpět do objektů
+        # POZOR: SQLAlchemy objekty nemají field "status" v DB modelu.
+        # Musíme ho nastavit jako runtime atribut, který Pydantic (ConnectorRead) přečte.
+        for index, status_val in enumerate(statuses):
+            charger_idx, connector_idx, _ = keys_map[index]
+            connector = chargers[charger_idx].connectors[connector_idx]
+            
+            connector.status = status_val if status_val else "Unknown"
+
+    async def _enrich_chargers_with_device_status(self, chargers: list[Charger]):
+        """
+        Doplní status celé nabíječky (Connected/Disconnected/Disabled).
+        """
+        if not self._redis or not chargers:
+            for c in chargers:
+                c.status = "Disabled" if not c.is_enabled else "Disconnected"
+            return
+
+        # 1. Pipeline check for online keys
+        async with self._redis.pipeline() as pipe:
+            for charger in chargers:
+                key = f"charger:{charger.ocpp_id}:online"
+                pipe.exists(key)
+            online_flags = await pipe.execute()
+
+        # 2. Logic assignment
+        for i, charger in enumerate(chargers):
+            is_online = online_flags[i] > 0
+            
+            if not charger.is_enabled:
+                charger.status = "Disabled"
+            elif is_online:
+                charger.status = "Connected"
+            else:
+                charger.status = "Disconnected"
