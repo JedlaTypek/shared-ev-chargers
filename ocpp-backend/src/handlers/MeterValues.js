@@ -6,6 +6,13 @@ export default async function handleMeterValues({ client, payload }) {
   // Log pro debug
   client.log.debug({ transactionId }, "📊 MeterValues received");
 
+  // Keep-alive: Update heartbeat in Redis because charging stations often don't send Heartbeats during transaction
+  try {
+    await apiClient.post(`/heartbeat/${client.identity}`);
+  } catch (err) {
+    client.log.warn({ err: err.message }, "⚠️ Failed to update heartbeat status from MeterValues");
+  }
+
   // 1. Získání poslední (nejnovější) hodnoty z pole měření
   // OCPP může poslat více vzorků najednou, nás zajímá ten aktuální (poslední)
   const lastSample = meterValue[meterValue.length - 1];
@@ -25,7 +32,7 @@ export default async function handleMeterValues({ client, payload }) {
     try {
       // Převedeme string na číslo (int)
       const valueInt = parseInt(energyImport.value, 10);
-      
+
       // Voláme API: POST /transactions/meter-values
       await apiClient.post("/transaction/meter-values", {
         transaction_id: transactionId,

@@ -43,6 +43,34 @@ interface Props {
     mode?: 'mine' | 'all';
 }
 
+const copyToClipboard = (text: string, label: string) => {
+    if (!navigator.clipboard) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            toast.success(`${label} copied`);
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+            toast.error('Failed to copy');
+        }
+        document.body.removeChild(textArea);
+        return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+        toast.success(`${label} copied`);
+    }).catch((err) => {
+        console.error('Failed to copy: ', err);
+        toast.error('Failed to copy');
+    });
+};
+
 export default function ChargersPage({ mode = 'mine' }: Props) {
     const { user } = useAuth();
     const queryClient = useQueryClient();
@@ -289,8 +317,7 @@ export default function ChargersPage({ mode = 'mine' }: Props) {
                                             size="icon"
                                             className="h-6 w-6"
                                             onClick={() => {
-                                                navigator.clipboard.writeText(charger.ocpp_id);
-                                                toast.success('OCPP ID copied');
+                                                copyToClipboard(charger.ocpp_id, 'OCPP ID');
                                             }}
                                             title="Copy OCPP ID"
                                         >
@@ -300,18 +327,20 @@ export default function ChargersPage({ mode = 'mine' }: Props) {
 
                                     <div className="mb-1 font-semibold">OCPP Connection URL:</div>
                                     <div className="flex items-center gap-2 mb-2">
-                                        <div className="text-[10px] font-mono bg-slate-100 border border-slate-200 text-slate-600 px-2 py-1 rounded truncate max-w-[220px]" title={`wss://jedlickaf.cz/${charger.ocpp_id}`}>
-                                            wss://jedlickaf.cz/{charger.ocpp_id}
+                                        <div 
+                                            className="text-[10px] font-mono bg-slate-100 border border-slate-200 text-slate-600 px-2 py-1 rounded truncate max-w-[220px]" 
+                                            title={`wss://jedlickaf.cz:9000/${charger.ocpp_id}`}
+                                        >
+                                            wss://jedlickaf.cz:9000/{charger.ocpp_id}
                                         </div>
                                         <Button
                                             variant="outline"
                                             size="icon"
                                             className="h-6 w-6"
                                             onClick={() => {
-                                                navigator.clipboard.writeText(`wss://jedlickaf.cz/${charger.ocpp_id}`);
-                                                toast.success('OCPP URL copied');
+                                                copyToClipboard(`wss://jedlickaf.cz:9000/${charger.ocpp_id}`, 'OCPP connection URL');
                                             }}
-                                            title="Copy OCPP URL"
+                                            title="Copy OCPP connection URL"
                                         >
                                             <Copy size={12} />
                                         </Button>

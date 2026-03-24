@@ -1,5 +1,5 @@
 import apiClient from "../utils/apiClient.js";
-import { kwToWatts } from "../utils/profileBuilder.js";
+import { kwToAmps } from "../utils/profileBuilder.js";
 
 // Pomocná funkce pro čekání
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -29,46 +29,46 @@ export default async function handleStartTransaction({ client, payload }) {
 
     // Asynchronní konfigurace - POUZE ChargePointMaxProfile
     (async () => {
-        // Počkáme 2 sekundy (5s už asi není třeba, když nepoužíváme TxProfile s IDčkem)
-        await sleep(2000);
+      // Počkáme 2 sekundy (5s už asi není třeba, když nepoužíváme TxProfile s IDčkem)
+      await sleep(2000);
 
-        const limitWatts = kwToWatts(max_power || 11);
-        
-        const profilePayload = {
-            connectorId: 0, // Celá nabíječka
-            csChargingProfiles: {
-                chargingProfileId: 999,
-                stackLevel: 2, // Vysoká priorita
-                chargingProfilePurpose: "ChargePointMaxProfile", 
-                chargingProfileKind: "Relative", 
-                chargingSchedule: {
-                    chargingRateUnit: "W",
-                    chargingSchedulePeriod: [{ startPeriod: 0, limit: limitWatts, numberPhases: 3 }]
-                }
-            }
-        };
+      const limitAmps = kwToAmps(max_power || 11);
 
-        try {
-            // Upravené logování pro zobrazení celé zprávy
-            client.log.info({ profilePayload }, `📤 Sending ChargePointMaxProfile (${limitWatts}W)...`);
-            const profileResponse = await client.call("SetChargingProfile", profilePayload);
-
-            if (profileResponse.status === 'Accepted') {
-                client.log.info("✅ MaxProfile ACCEPTED - Waiting for contactor...");
-            } else {
-                client.log.warn({ status: profileResponse.status }, "⚠️ MaxProfile REJECTED");
-            }
-        } catch (err) {
-            client.log.error({ err: err.message }, "💥 Error sending MaxProfile");
+      const profilePayload = {
+        connectorId: 0, // Celá nabíječka
+        csChargingProfiles: {
+          chargingProfileId: 999,
+          stackLevel: 2, // Vysoká priorita
+          chargingProfilePurpose: "ChargePointMaxProfile",
+          chargingProfileKind: "Relative",
+          chargingSchedule: {
+            chargingRateUnit: "A",
+            chargingSchedulePeriod: [{ startPeriod: 0, limit: limitAmps, numberPhases: 3 }]
+          }
         }
+      };
 
-        // ❌ ZDE JSME SMAZALI RemoteStartTransaction ❌
-        // Už ho neposíláme, protože způsoboval smyčku restartů.
+      try {
+        // Upravené logování pro zobrazení celé zprávy
+        client.log.info({ profilePayload }, `📤 Sending ChargePointMaxProfile (${limitAmps}A)...`);
+        const profileResponse = await client.call("SetChargingProfile", profilePayload);
+
+        if (profileResponse.status === 'Accepted') {
+          client.log.info("✅ MaxProfile ACCEPTED - Waiting for contactor...");
+        } else {
+          client.log.warn({ status: profileResponse.status }, "⚠️ MaxProfile REJECTED");
+        }
+      } catch (err) {
+        client.log.error({ err: err.message }, "💥 Error sending MaxProfile");
+      }
+
+      // ❌ ZDE JSME SMAZALI RemoteStartTransaction ❌
+      // Už ho neposíláme, protože způsoboval smyčku restartů.
 
     })();
 
     return {
-      transactionId: transactionId, 
+      transactionId: transactionId,
       idTagInfo: { status: "Accepted" },
     };
 

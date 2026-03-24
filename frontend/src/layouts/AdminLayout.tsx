@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Map as MapIcon, User, Layers, History, CreditCard, FileText, Zap } from 'lucide-react';
+import { LogOut, LayoutDashboard, Map as MapIcon, User, Layers, History, CreditCard, FileText } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, logout } = useAuth();
@@ -80,9 +80,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </Link>
                         </>
                     )}
-
                     {/* BECOME OWNER LINK (For basic users) */}
-                    {user?.role === 'user' && (
+                    {/* {user?.role === 'user' && (
                         <>
                             <div className="pt-4 pb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                 Owner Section
@@ -91,7 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 <Zap size={20} /> Become an Owner
                             </Link>
                         </>
-                    )}
+                    )} */}
 
                     {/* OWNER ONLY */}
                     {user?.role === 'owner' && (

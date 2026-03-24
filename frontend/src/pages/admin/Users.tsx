@@ -170,7 +170,7 @@ export default function UsersPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Balance (CZK)</Label>
-                                    <Input type="number" {...register('balance', { valueAsNumber: true })} />
+                                    <Input type="number" step="0.01" {...register('balance', { valueAsNumber: true })} />
                                 </div>
                             </div>
                             <DialogFooter>

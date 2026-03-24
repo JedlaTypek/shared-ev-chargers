@@ -132,37 +132,30 @@ class TransactionService:
 
         # --- DEDUCT BALANCE FROM USER ---
         if log.price > 0 and log.user_id:
-            # Musíme načíst uživatele, abychom mu odečetli kredit
-            # Import User musíme dát na začátek souboru, pokud tam není
-            # Ale tady lokálně pro přehlednost:
-            from app.db.schema import User
+            # Atomic update for User (Deduct balance)
+            from sqlalchemy import update
+            from app.db.schema import User # Local import to avoid potential circular dep issues if any, though top-level is likely fine too.
+
+            stmt_deduct = (
+                update(User)
+                .where(User.id == log.user_id)
+                .values(balance=User.balance - log.price)
+            )
+            await self._db.execute(stmt_deduct)
             
-            user_stmt = select(User).where(User.id == log.user_id)
-            user_result = await self._db.execute(user_stmt)
-            user = user_result.scalars().first()
-            
-            if user:
-                # Odečteme cenu z balance
-                # log.price je Decimal (nebo 0), user.balance je Decimal
-                user.balance -= log.price
-                self._db.add(user) # Označíme pro update
-            
-            # --- CREDIT BALANCE TO CHARGER OWNER ---
-            # 1. Načteme nabíječku (pro získání owner_id)
-            stmt_charger = select(Charger).where(Charger.id == log.charger_id)
+            # Atomic update for Owner (Credit balance)
+            # 1. Get Charger's owner_id
+            stmt_charger = select(Charger.owner_id).where(Charger.id == log.charger_id)
             result_charger = await self._db.execute(stmt_charger)
-            charger = result_charger.scalars().first()
+            owner_id = result_charger.scalars().first()
             
-            if charger and charger.owner_id:
-                 # 2. Načteme majitele nabíječky
-                 stmt_owner = select(User).where(User.id == charger.owner_id)
-                 result_owner = await self._db.execute(stmt_owner)
-                 owner = result_owner.scalars().first()
-                 
-                 # 3. Přičteme mu kredit (pokud to není stejný uživatel, což by neměl být, ale i tak)
-                 if owner:
-                     owner.balance += log.price
-                     self._db.add(owner)
+            if owner_id:
+                 stmt_credit = (
+                     update(User)
+                     .where(User.id == owner_id)
+                     .values(balance=User.balance + log.price)
+                 )
+                 await self._db.execute(stmt_credit)
 
         # 6. Uložení do DB
         self._db.add(log)
